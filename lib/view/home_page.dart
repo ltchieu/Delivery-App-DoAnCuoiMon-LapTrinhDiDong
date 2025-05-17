@@ -1,4 +1,5 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:do_an_cuoi_mon/main.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -196,6 +197,12 @@ class _HomnePageState extends State<HomePage> {
             ),
             SizedBox(height: 30),
             Text(bannerList.elementAt(_selectedIndex)),
+            TextButton(
+              onPressed: () {
+                MyApp.navigatorKey.currentState!.pushNamed('CTDonHang');
+              },
+              child: Text("Chuyển đến trang chi tiết đơn hàng"),
+            ),
           ],
         ),
       ),

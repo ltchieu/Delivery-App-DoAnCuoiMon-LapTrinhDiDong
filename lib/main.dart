@@ -1,4 +1,5 @@
 import 'package:do_an_cuoi_mon/view/home_page.dart';
+import 'package:do_an_cuoi_mon/view/order_details.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -19,7 +20,10 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
-      routes: {'/': (context) => HomePage()},
+      routes: {
+        '/': (context) => HomePage(),
+        'CTDonHang': (context) => OrderDetails(),
+      },
     );
   }
 }
