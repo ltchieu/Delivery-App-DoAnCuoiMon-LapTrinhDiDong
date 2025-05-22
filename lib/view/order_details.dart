@@ -1,6 +1,8 @@
 import 'dart:collection';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 
 class OrderDetails extends StatefulWidget {
   const OrderDetails({super.key});
@@ -11,6 +13,7 @@ class OrderDetails extends StatefulWidget {
 
 class OrderDetailsState extends State<OrderDetails> {
   TextEditingController txt_khoiLuong = TextEditingController();
+  TextEditingController txt_ghiChuTaiXe = TextEditingController();
 
   static final TextStyle _textStyleCTHangHoa = TextStyle(
     color: Colors.black,
@@ -45,6 +48,154 @@ class OrderDetailsState extends State<OrderDetails> {
   bool _isExpand = false;
   int _selectedIndex = 0;
   late HashMap<int, bool> _lstSelectedHangHoa = HashMap();
+
+  void _showGhiChuTaiXe() async {
+    final selected = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      builder: (context) {
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: Icon(FontAwesomeIcons.xmark),
+                  ),
+
+                  Padding(
+                    padding: EdgeInsets.only(left: 80),
+                    child: Text(
+                      'Ghi chú cho tài xế',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontFamily: 'PT Sans',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Padding(
+                padding: EdgeInsets.all(8),
+                child: SizedBox(
+                  height: 150,
+                  child: TextField(
+                    controller: txt_ghiChuTaiXe,
+                    expands: true,
+                    maxLines: null,
+                    minLines: null,
+                    textAlignVertical: TextAlignVertical.top,
+                    decoration: InputDecoration(
+                      hintText: 'Nhập lời nhắn của bạn',
+                      hintStyle: TextStyle(
+                        color: const Color.fromARGB(255, 131, 131, 131),
+                        fontSize: 16,
+                      ),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 15),
+              Padding(
+                padding: EdgeInsets.all(8),
+                child: MaterialButton(
+                  onPressed: () {},
+                  color: Colors.deepOrange,
+                  minWidth: MediaQuery.of(context).size.width * 1,
+                  height: 50,
+                  child: Text(
+                    'Xác nhận',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'PT Sans',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDateTimeBottomSheet() async {
+    DateTime? selectedDate;
+    TimeOfDay? selectedTime;
+
+    final formater = DateFormat('HH:mm');
+    String ngayLayHang =
+        'Hôm nay, ' +
+        formater.format(DateTime.now()) +
+        ' - ' +
+        formater.format(DateTime.now().add(Duration(minutes: 15)));
+
+    final selected = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      builder: (context) {
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: Icon(FontAwesomeIcons.xmark),
+                  ),
+
+                  Padding(
+                    padding: EdgeInsets.only(left: 90),
+                    child: Text(
+                      'Hẹn giờ lấy hàng',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontFamily: 'PT Sans',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              Text(
+                ngayLayHang,
+                style: TextStyle(
+                  color: Colors.deepOrange,
+                  fontFamily: 'PT Sans',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+
+              SizedBox(height: 30),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -150,9 +301,24 @@ class OrderDetailsState extends State<OrderDetails> {
                                 ),
                               ),
 
-                              TextButton(
+                              ElevatedButton.icon(
+                                icon: Icon(
+                                  FontAwesomeIcons.retweet,
+                                  size: 18,
+                                  color: const Color.fromARGB(
+                                    255,
+                                    126,
+                                    126,
+                                    126,
+                                  ),
+                                ),
+
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  elevation: 0,
+                                ),
                                 onPressed: () {},
-                                child: Text(
+                                label: Text(
                                   'Hoán đổi',
                                   style: TextStyle(
                                     fontSize: 18,
@@ -379,7 +545,9 @@ class OrderDetailsState extends State<OrderDetails> {
 
                           MaterialButton(
                             height: 70,
-                            onPressed: () {},
+                            onPressed: () {
+                              _showDateTimeBottomSheet();
+                            },
                             child: Row(
                               children: [
                                 Padding(
@@ -499,6 +667,8 @@ class OrderDetailsState extends State<OrderDetails> {
                             firstChild: Padding(
                               padding: EdgeInsets.only(left: 60),
                               child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Padding(
                                     padding: EdgeInsets.all(5),
@@ -520,42 +690,100 @@ class OrderDetailsState extends State<OrderDetails> {
                                       ),
                                     ),
                                   ),
-                                  Padding(
-                                    padding: EdgeInsets.all(5),
-                                    child: Container(
-                                      color: const Color.fromARGB(
-                                        255,
-                                        216,
-                                        216,
-                                        216,
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(4),
-                                        child: Text(
-                                          txt_khoiLuong.text.isEmpty
-                                              ? 'Khối lượng'
-                                              : txt_khoiLuong.text + 'kg',
-                                          style: _textStyleCTHangHoa,
+
+                                  Expanded(
+                                    child: Wrap(
+                                      children: [
+                                        Padding(
+                                          padding: EdgeInsets.all(5),
+                                          child: Container(
+                                            color: const Color.fromARGB(
+                                              255,
+                                              216,
+                                              216,
+                                              216,
+                                            ),
+                                            child: Padding(
+                                              padding: EdgeInsets.all(4),
+                                              child: Text(
+                                                txt_khoiLuong.text.isEmpty
+                                                    ? 'Khối lượng'
+                                                    : txt_khoiLuong.text + 'kg',
+                                                style: _textStyleCTHangHoa,
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.all(5),
-                                    child: Container(
-                                      color: const Color.fromARGB(
-                                        255,
-                                        216,
-                                        216,
-                                        216,
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(4),
-                                        child: Text(
-                                          'Loại sản phẩm',
-                                          style: _textStyleCTHangHoa,
+
+                                        Padding(
+                                          padding: EdgeInsets.all(5),
+                                          child:
+                                              _lstSelectedHangHoa.values.every(
+                                                    (v) => !v,
+                                                  )
+                                                  ? Container(
+                                                    color: const Color.fromARGB(
+                                                      255,
+                                                      216,
+                                                      216,
+                                                      216,
+                                                    ),
+                                                    child: Padding(
+                                                      padding: EdgeInsets.all(
+                                                        4,
+                                                      ),
+                                                      child: Text(
+                                                        'Loại sản phẩm',
+                                                        style:
+                                                            _textStyleCTHangHoa,
+                                                      ),
+                                                    ),
+                                                  )
+                                                  : Wrap(
+                                                    spacing:
+                                                        8.0, // Khoảng cách ngang giữa các mục
+                                                    runSpacing:
+                                                        8.0, // Khoảng cách dọc giữa các dòng
+                                                    children:
+                                                        _lstSelectedHangHoa
+                                                            .entries
+                                                            .where(
+                                                              (entry) =>
+                                                                  entry.value,
+                                                            )
+                                                            .map(
+                                                              (
+                                                                entry,
+                                                              ) => Container(
+                                                                padding:
+                                                                    EdgeInsets.symmetric(
+                                                                      vertical:
+                                                                          4,
+                                                                      horizontal:
+                                                                          6,
+                                                                    ),
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                      color:
+                                                                          const Color.fromARGB(
+                                                                            255,
+                                                                            216,
+                                                                            216,
+                                                                            216,
+                                                                          ),
+                                                                    ),
+                                                                child: Text(
+                                                                  loaiHang[entry
+                                                                      .key],
+                                                                  style:
+                                                                      _textStyleCTHangHoa,
+                                                                ),
+                                                              ),
+                                                            )
+                                                            .toList(),
+                                                  ),
                                         ),
-                                      ),
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -824,7 +1052,9 @@ class OrderDetailsState extends State<OrderDetails> {
                             color: Color(0xFFE0E0E0),
                           ),
                           MaterialButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              _showGhiChuTaiXe();
+                            },
                             child: Row(
                               children: [
                                 Padding(
