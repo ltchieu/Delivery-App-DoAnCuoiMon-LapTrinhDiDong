@@ -1,5 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:do_an_cuoi_mon/main.dart';
+import 'package:do_an_cuoi_mon/view/CustomBottomNavBar.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -39,12 +40,6 @@ class _HomnePageState extends State<HomePage> {
     } else {
       return "Chào buổi tối!";
     }
-  }
-
-  void _onBottomNavigatorTap(index) {
-    setState(() {
-      _selectedIndex = index;
-    });
   }
 
   @override
@@ -206,28 +201,7 @@ class _HomnePageState extends State<HomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.deepOrangeAccent,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(FontAwesomeIcons.house),
-            label: 'Trang chủ',
-            backgroundColor: Colors.white,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(FontAwesomeIcons.clock),
-            label: 'Đơn hàng',
-            backgroundColor: Colors.white,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(FontAwesomeIcons.user),
-            label: 'Tài khoản',
-            backgroundColor: Colors.white,
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onBottomNavigatorTap,
-      ),
+      bottomNavigationBar: CustomBottomNavBar(currentIndex: 0),
     );
   }
 }
