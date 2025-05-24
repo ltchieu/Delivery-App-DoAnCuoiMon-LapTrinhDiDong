@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:do_an_cuoi_mon/main.dart';
 import 'package:do_an_cuoi_mon/view/CustomBottomNavBar.dart';
+import 'package:do_an_cuoi_mon/view/Notification.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -70,7 +71,9 @@ class _HomnePageState extends State<HomePage> {
             backgroundColor: Colors.transparent,
             actions: [
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  MyApp.navigatorKey.currentState!.pushNamed('Notification');
+                },
                 icon: Icon(FontAwesomeIcons.solidBell, color: Colors.white),
               ),
             ],
@@ -133,7 +136,11 @@ class _HomnePageState extends State<HomePage> {
                             border: InputBorder.none,
                             isCollapsed: true,
                           ),
-                          onTap: () {},
+                          onTap: () {
+                            MyApp.navigatorKey.currentState!.pushNamed(
+                              'DiaChiGiaoHang',
+                            );
+                          },
                         ),
                       ),
                     ],

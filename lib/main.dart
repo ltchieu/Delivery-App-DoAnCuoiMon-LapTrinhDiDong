@@ -1,4 +1,5 @@
-import 'package:do_an_cuoi_mon/view/WelcomeScreen.dart';
+import 'package:do_an_cuoi_mon/view/Notification.dart';
+import 'package:do_an_cuoi_mon/view/PackageTrackingScreen.dart';
 import 'package:do_an_cuoi_mon/view/home_page.dart';
 import 'package:do_an_cuoi_mon/view/order_details.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,8 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => HomePage(),
         'CTDonHang': (context) => OrderDetails(),
+        'Notification': (context) => NotificationScreen(),
+        'DiaChiGiaoHang': (context) => PackageTrackingScreen(),
       },
     );
   }
