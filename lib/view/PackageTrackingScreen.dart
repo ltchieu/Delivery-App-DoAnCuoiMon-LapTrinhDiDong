@@ -23,14 +23,16 @@ class PackageTrackingScreen extends StatelessWidget {
                   color: Colors.black,
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
+                  fontFamily: 'PTSans',
                 ),
               ),
               TextSpan(
                 text: '"SK27367279"',
                 style: TextStyle(
-                  color: Color(0xFF00BFA5),
+                  color: Colors.orange,
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
+                  fontFamily: 'PTSans',
                 ),
               ),
             ],
@@ -54,12 +56,13 @@ class PackageTrackingScreen extends StatelessWidget {
                 children: [
                   const CircleAvatar(
                     radius: 24,
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Colors.orange,
                     child: Text(
                       'MM',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
+                        fontFamily: 'PTSans',
                       ),
                     ),
                   ),
@@ -74,11 +77,12 @@ class PackageTrackingScreen extends StatelessWidget {
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Colors.black87,
+                            fontFamily: 'PTSans',
                           ),
                         ),
                         Text(
                           '+1 234 567 8900',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                          style: TextStyle(fontSize: 14, color: Colors.grey, fontFamily: 'PTSans',),
                         ),
                       ],
                     ),
@@ -88,12 +92,12 @@ class PackageTrackingScreen extends StatelessWidget {
                     icon: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00BFA5).withOpacity(0.1),
+                        color: const Color(0xFFFF9800).withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.phone,
-                        color: Color(0xFF00BFA5),
+                        color: Colors.orange,
                         size: 20,
                       ),
                     ),
@@ -103,12 +107,12 @@ class PackageTrackingScreen extends StatelessWidget {
                     icon: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00BFA5).withOpacity(0.1),
+                        color: const Color(0xFFFF9800).withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.message,
-                        color: Color(0xFF00BFA5),
+                        color: Colors.orange,
                         size: 20,
                       ),
                     ),
@@ -129,7 +133,7 @@ class PackageTrackingScreen extends StatelessWidget {
                       icon: Icons.qr_code,
                       title: 'SK27367279',
                       subtitle: 'Track ID',
-                      color: const Color(0xFF00BFA5),
+                      color: const Color(0xFFFF9800),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -138,7 +142,7 @@ class PackageTrackingScreen extends StatelessWidget {
                       icon: Icons.access_time,
                       title: '2-3 days',
                       subtitle: 'Estimate time',
-                      color: const Color(0xFF00BFA5),
+                      color: const Color(0xFFFF9800),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -147,7 +151,7 @@ class PackageTrackingScreen extends StatelessWidget {
                       icon: Icons.scale,
                       title: '2.4 kg',
                       subtitle: 'Package Weight',
-                      color: const Color(0xFF00BFA5),
+                      color: const Color(0xFFFF9800),
                     ),
                   ),
                 ],
@@ -217,7 +221,7 @@ class PackageTrackingScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () => _reportIssue(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00BFA5),
+                    backgroundColor: const Color(0xFFFF9800),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -227,7 +231,7 @@ class PackageTrackingScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     'Report an Issue',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, fontFamily: 'PTSans',),
                   ),
                 ),
               ),
@@ -276,12 +280,13 @@ class PackageTrackingScreen extends StatelessWidget {
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Colors.black87,
+              fontFamily: 'PTSans',
             ),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 12, color: Colors.grey[600], fontFamily: 'PTSans'),
             textAlign: TextAlign.center,
           ),
         ],
@@ -304,7 +309,7 @@ class PackageTrackingScreen extends StatelessWidget {
               width: 20,
               height: 20,
               decoration: BoxDecoration(
-                color: isCompleted ? const Color(0xFF00BFA5) : Colors.grey[300],
+                color: isCompleted ? const Color(0xFFFF9800) : Colors.grey[300],
                 shape: BoxShape.circle,
               ),
               child:
@@ -329,6 +334,7 @@ class PackageTrackingScreen extends StatelessWidget {
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: Colors.black87,
+                    fontFamily: 'PTSans',
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -338,10 +344,11 @@ class PackageTrackingScreen extends StatelessWidget {
                     fontSize: 12,
                     color:
                         isCompleted
-                            ? const Color(0xFF00BFA5)
+                            ? const Color(0xFFFF9800)
                             : Colors.grey[600],
                     fontWeight:
                         isCompleted ? FontWeight.w500 : FontWeight.normal,
+                        fontFamily: 'PTSans',
                   ),
                 ),
               ],
@@ -355,8 +362,8 @@ class PackageTrackingScreen extends StatelessWidget {
   void _makeCall(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Calling Marvin McKinney...'),
-        backgroundColor: Color(0xFF00BFA5),
+        content: Text('Calling Marvin McKinney...', style: TextStyle(fontFamily: 'PTSans')),
+        backgroundColor: Colors.orange,
       ),
     );
   }
@@ -364,8 +371,8 @@ class PackageTrackingScreen extends StatelessWidget {
   void _sendMessage(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Opening message to Marvin McKinney...'),
-        backgroundColor: Color(0xFF00BFA5),
+        content: Text('Opening message to Marvin McKinney...', style: TextStyle(fontFamily: 'PTSans')),
+        backgroundColor: Colors.orange,
       ),
     );
   }
@@ -393,39 +400,39 @@ class PackageTrackingScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 const Text(
                   'Report an Issue',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'PTSans'),
                 ),
                 const SizedBox(height: 16),
                 ListTile(
                   leading: const Icon(
                     Icons.local_shipping,
-                    color: Color(0xFF00BFA5),
+                    color: Colors.orange
                   ),
-                  title: const Text('Package not delivered'),
+                  title: const Text('Package not delivered', style:TextStyle(fontFamily: 'PTSans')),
                   onTap: () => Navigator.pop(context),
                 ),
                 ListTile(
                   leading: const Icon(
                     Icons.broken_image,
-                    color: Color(0xFF00BFA5),
+                    color: Colors.orange,
                   ),
-                  title: const Text('Package damaged'),
+                  title: const Text('Package damaged', style: TextStyle(fontFamily: 'PTSans')),
                   onTap: () => Navigator.pop(context),
                 ),
                 ListTile(
                   leading: const Icon(
                     Icons.location_off,
-                    color: Color(0xFF00BFA5),
+                    color: Colors.orange,
                   ),
-                  title: const Text('Wrong delivery address'),
+                  title: const Text('Wrong delivery address', style: TextStyle(fontFamily: 'PTSans')),
                   onTap: () => Navigator.pop(context),
                 ),
                 ListTile(
                   leading: const Icon(
                     Icons.help_outline,
-                    color: Color(0xFF00BFA5),
+                    color: Colors.orange,
                   ),
-                  title: const Text('Other issue'),
+                  title: const Text('Other issue', style:TextStyle(fontFamily: 'PTSans')),
                   onTap: () => Navigator.pop(context),
                 ),
               ],
@@ -447,16 +454,16 @@ class PackageTrackingScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  leading: const Icon(Icons.share, color: Color(0xFF00BFA5)),
-                  title: const Text('Share tracking info'),
+                  leading: const Icon(Icons.share, color: Colors.orange),
+                  title: const Text('Share tracking info',style:TextStyle(fontFamily: 'PTSans')),
                   onTap: () => Navigator.pop(context),
                 ),
                 ListTile(
                   leading: const Icon(
                     Icons.notifications,
-                    color: Color(0xFF00BFA5),
+                    color: Colors.orange,
                   ),
-                  title: const Text('Set delivery notifications'),
+                  title: const Text('Set delivery notifications', style:TextStyle(fontFamily: 'PTSans')),
                   onTap: () => Navigator.pop(context),
                 ),
               ],

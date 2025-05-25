@@ -3,7 +3,7 @@ import 'package:do_an_cuoi_mon/view/PackageTrackingScreen.dart';
 import 'package:do_an_cuoi_mon/view/home_page.dart';
 import 'package:do_an_cuoi_mon/view/order_details.dart';
 import 'package:flutter/material.dart';
-
+import 'package:do_an_cuoi_mon/view/Location_Picker.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => HomePage(),
         'CTDonHang': (context) => OrderDetails(),
         'Notification': (context) => NotificationScreen(),
-        'DiaChiGiaoHang': (context) => PackageTrackingScreen(),
+        'DiaChiGiaoHang': (context) => LocationPickerScreen(),
       },
     );
   }
