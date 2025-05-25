@@ -1,6 +1,7 @@
 import 'package:do_an_cuoi_mon/view/CustomBottomNavBar.dart';
 import 'package:do_an_cuoi_mon/view/EditProfileScreen%20.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({Key? key}) : super(key: key);
@@ -102,8 +103,13 @@ class AccountScreen extends StatelessWidget {
                         backgroundColor: Colors.red,
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
-                      onPressed: () {
-                        // Handle logout
+                      onPressed: () async {
+                        
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.clear();
+
+                        // Chuyển hướng về màn hình đăng nhập
+                        Navigator.pushReplacementNamed(context, '/Welcome');
                       },
                       child: const Text(
                         'Logout',

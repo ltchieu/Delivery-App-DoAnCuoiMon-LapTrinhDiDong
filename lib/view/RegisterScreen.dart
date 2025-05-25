@@ -9,33 +9,61 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  bool _isPasswordVisible = false;
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
 
   Future<void> _registerUser() async {
-    final url = Uri.parse('http://localhost:3000/auth/register');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': _usernameController.text,
-        'email': _emailController.text,
-        'password': _passwordController.text,
-        'role_id': "RO1",
-      }),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(child: CircularProgressIndicator()),
     );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registration successful: ${data['message']}')),
+    try {
+      final url = Uri.parse('http://192.168.123.37:5141/api/auth/register');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "userName": _usernameController.text,
+          "email": _emailController.text,
+          "phoneNumber": _phoneNumberController.text,
+          "password": _passwordController.text,
+          "role": "Customer",
+        }),
       );
-    } else {
-      final error = jsonDecode(response.body);
+
+      Navigator.pop(context); // Đóng loading
+
+      if (response.statusCode == 200) {
+        try {
+          final data = jsonDecode(response.body);
+          final message = data['message'] ?? 'Đăng ký thành công!';
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
+        } catch (_) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Đăng ký thành công!')));
+        }
+
+        await Future.delayed(Duration(seconds: 2));
+        Navigator.pushReplacementNamed(context, '/login');
+      } else {
+        final error = response.body;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi: $error')));
+      }
+    } catch (e) {
+      Navigator.pop(context); // Đóng loading nếu có lỗi
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error: ${error['message']}')));
+      ).showSnackBar(SnackBar(content: Text('Đã xảy ra lỗi: $e')));
     }
   }
 
@@ -59,23 +87,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Sign up',
+                  'Đăng ký',
                   style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Please create a new account',
+                  'Vui lòng tạo tài khoản mới',
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
                 const SizedBox(height: 32),
                 const Text(
-                  'Name',
+                  'Họ tên',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 TextFormField(
                   controller: _usernameController,
                   decoration: InputDecoration(
-                    hintText: 'Enter your full name...',
+                    hintText: 'Nhập họ tên của bạn...',
                     hintStyle: TextStyle(color: Colors.grey),
                     filled: true,
                     fillColor: Colors.grey[100],
@@ -86,7 +114,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
+                      return 'Vui lòng nhập họ tên';
                     }
                     return null;
                   },
@@ -110,21 +138,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return 'Vui lòng nhập email';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Password',
+                  'Số điện thoại',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
+                  controller: _phoneNumberController,
+                  keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
-                    hintText: 'Your password',
+                    hintText: 'Nhập số điện thoại của bạn...',
                     hintStyle: TextStyle(color: Colors.grey),
                     filled: true,
                     fillColor: Colors.grey[100],
@@ -132,11 +160,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide.none,
                     ),
-                    suffixIcon: const Icon(Icons.visibility_off),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
+                      return 'Vui lòng nhập số điện thoại';
+                    }
+                    if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                      return 'Vui lòng nhập số điện thoại hợp lệ';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Mật khẩu',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: !_isPasswordVisible,
+                  decoration: InputDecoration(
+                    hintText: 'Nhập mật khẩu của bạn',
+                    hintStyle: TextStyle(color: Colors.grey),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Vui lòng nhập mật khẩu';
                     }
                     return null;
                   },
@@ -158,7 +225,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     child: const Text(
-                      'Sign up',
+                      'Đăng ký',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

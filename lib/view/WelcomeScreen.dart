@@ -13,7 +13,7 @@ class WelcomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Welcome to the App!',
+              'Chào mừng đến với DeliGo!',
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
@@ -22,12 +22,12 @@ class WelcomeScreen extends StatelessWidget {
             ),
             SizedBox(height: 10),
             Text(
-              'Lets get started.',
+              'Hãy bắt đầu ngay.',
               style: TextStyle(fontSize: 16, color: Colors.black),
             ),
             SizedBox(height: 100),
             Text(
-              'Existing User? Sign in here',
+              'Bạn đã có tài khoản? Vui lòng đăng nhập',
               style: TextStyle(fontSize: 16, color: Colors.black),
             ),
             ElevatedButton(
@@ -43,7 +43,7 @@ class WelcomeScreen extends StatelessWidget {
                 );
               },
               child: Text(
-                'Sign in',
+                'Đăng nhập',
                 style: TextStyle(fontSize: 16, color: Colors.white),
               ),
             ),
@@ -52,10 +52,9 @@ class WelcomeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'New User?',
+                  'Người dùng mới?',
                   style: TextStyle(fontSize: 16, color: Colors.black),
                 ),
-
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -64,7 +63,7 @@ class WelcomeScreen extends StatelessWidget {
                     );
                   },
                   child: Text(
-                    'Register here',
+                    'Đăng ký tại đây',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.orange,
