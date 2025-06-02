@@ -24,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     try {
-      final url = Uri.parse('http://192.168.123.37:5141/api/auth/login');
+      final url = Uri.parse('http://10.0.2.2:5141/api/auth/login');
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -43,12 +43,10 @@ class _LoginScreenState extends State<LoginScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token']);
 
-        
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Đăng nhập thành công')));
 
-      
         Navigator.pushNamed(context, '/home');
       } else {
         final error = response.body;
@@ -57,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ).showSnackBar(SnackBar(content: Text('Đăng nhập thất bại: $error')));
       }
     } catch (e) {
-      Navigator.pop(context); 
+      Navigator.pop(context);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
