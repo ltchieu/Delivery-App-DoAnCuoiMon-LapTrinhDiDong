@@ -24,9 +24,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       debugShowCheckedModeBanner: false,
-      home: const SplashScreen(), 
+      home: const SplashScreen(),
       routes: {
-        '/Welcome': (context) => const WelcomeScreen(), 
+        '/Welcome': (context) => const WelcomeScreen(),
         '/home': (context) => const HomePage(),
         '/login': (context) => const LoginScreen(),
         'CTDonHang': (context) => OrderDetails(),
@@ -73,12 +73,12 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             // Hiển thị ảnh đại diện
             Image.asset(
-              'lib/images/logo_giaohang.png', 
+              'lib/images/logo_giaohang.png',
               width: 150,
               height: 150,
             ),
             const SizedBox(height: 20),
-            
+
             const CircularProgressIndicator(),
           ],
         ),
