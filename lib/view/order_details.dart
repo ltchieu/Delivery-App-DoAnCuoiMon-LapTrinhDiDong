@@ -1,4 +1,8 @@
 import 'dart:collection';
+import 'package:do_an_cuoi_mon/model/category_dto.dart';
+import 'package:do_an_cuoi_mon/model/service_dto.dart';
+import 'package:do_an_cuoi_mon/model/size_dto.dart';
+import 'package:do_an_cuoi_mon/service/order_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -22,13 +26,11 @@ class OrderDetailsState extends State<OrderDetails> {
     fontSize: 12,
     fontFamily: 'PT Sans',
   );
-  final List<String> sizes = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
-  final List<String> loaiHang = [
-    'Thời trang',
-    'Mỹ phẩm',
-    'Thực phẩm khô / đóng gói',
-    'Khác',
-  ];
+
+  bool isLoading = true;
+  List<SizeDto> sizes = [];
+  List<ServiceDto> services = [];
+  List<CategoryDto> loaiHang = [];
 
   final List<String> lst_yeuCauDacBiet = [
     'Túi giữ nhiệt',
@@ -48,6 +50,7 @@ class OrderDetailsState extends State<OrderDetails> {
 
   bool _isExpand = false;
   int _selectedIndex = 0;
+  int _selectedServiceIndex = -1;
   late HashMap<int, bool> _lstSelectedHangHoa = HashMap();
   late String ngayLayHang;
   final formatter = DateFormat('HH:mm');
@@ -68,11 +71,84 @@ class OrderDetailsState extends State<OrderDetails> {
     return '$weekday, ${date.day}/${date.month}';
   }
 
-  String truncateText(String text) {
-    if (text.length > 15) {
-      return text.substring(0, 15);
+  @override
+  void initState() {
+    super.initState();
+    ngayLayHang = "";
+
+    _lstSelectedHangHoa = HashMap.fromIterable(
+      List.generate(loaiHang.length, (index) => index),
+      key: (index) => index,
+      value: (_) => false,
+    );
+    _fetchServices();
+    _fetchSizes();
+    _fetchCategories();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Future<void> _fetchServices() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final fetchedServices = await OrderService.getServices();
+      setState(() {
+        services = fetchedServices;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error fetching services: $e')));
     }
-    return text;
+  }
+
+  Future<void> _fetchSizes() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final fetchedSizes = await OrderService.getSizes();
+      setState(() {
+        sizes = fetchedSizes;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error fetching sizes: $e')));
+    }
+  }
+
+  Future<void> _fetchCategories() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final fetchedCategories = await OrderService.getCategories();
+      setState(() {
+        loaiHang = fetchedCategories;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error fetching categories: $e')));
+    }
   }
 
   void _showGhiChuTaiXe() async {
@@ -338,21 +414,99 @@ class OrderDetailsState extends State<OrderDetails> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    ngayLayHang = "";
+  void _showServicesBottomSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: MediaQuery.of(context).viewInsets,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.5,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: 10),
+                    Text(
+                      'Chọn dịch vụ bạn mong muốn',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontFamily: 'PT Sans',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    const Divider(
+                      thickness: 1,
+                      height: 1,
+                      color: Color(0xFFE0E0E0),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: services.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: EdgeInsets.only(left: 10, right: 10),
+                            child: MaterialButton(
+                              onPressed: () {
+                                setState(() {
+                                  setModalState(() {
+                                    _selectedServiceIndex = index;
+                                  });
+                                });
+                              },
+                              color:
+                                  _selectedServiceIndex == index
+                                      ? const Color.fromARGB(255, 248, 232, 206)
+                                      : null,
+                              height: 50,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    services[index].name.toString(),
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontFamily: 'PT Sans',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
 
-    _lstSelectedHangHoa = HashMap.fromIterable(
-      List.generate(loaiHang.length, (index) => index),
-      key: (index) => index,
-      value: (_) => false,
+                                  Text(
+                                    services[index].price.toString() + "đ",
+                                    style: TextStyle(
+                                      color:
+                                          _selectedServiceIndex == index
+                                              ? Colors.deepOrangeAccent
+                                              : Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
@@ -673,7 +827,9 @@ class OrderDetailsState extends State<OrderDetails> {
                         children: [
                           MaterialButton(
                             height: 80,
-                            onPressed: () {},
+                            onPressed: () {
+                              _showServicesBottomSheet();
+                            },
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
@@ -874,7 +1030,8 @@ class OrderDetailsState extends State<OrderDetails> {
                                         child: Text(
                                           _selectedIndex == -1
                                               ? 'Kích cỡ'
-                                              : sizes[_selectedIndex],
+                                              : sizes[_selectedIndex].sizeId
+                                                  .toString(),
                                           style: _textStyleCTHangHoa,
                                         ),
                                       ),
@@ -923,7 +1080,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                                         4,
                                                       ),
                                                       child: Text(
-                                                        'Loại sản phẩm',
+                                                        'Loại hàng hóa',
                                                         style:
                                                             _textStyleCTHangHoa,
                                                       ),
@@ -964,7 +1121,9 @@ class OrderDetailsState extends State<OrderDetails> {
                                                                     ),
                                                                 child: Text(
                                                                   loaiHang[entry
-                                                                      .key],
+                                                                          .key]
+                                                                      .categoryName
+                                                                      .toString(),
                                                                   style:
                                                                       _textStyleCTHangHoa,
                                                                 ),
@@ -1030,7 +1189,8 @@ class OrderDetailsState extends State<OrderDetails> {
                                     Padding(
                                       padding: EdgeInsets.only(left: 6),
                                       child: Text(
-                                        '25x26x27',
+                                        sizes[_selectedIndex].description
+                                            .toString(),
                                         style: TextStyle(
                                           color: const Color.fromARGB(
                                             255,
@@ -1075,16 +1235,19 @@ class OrderDetailsState extends State<OrderDetails> {
                                             ),
                                           ),
                                           child: Center(
-                                            child: Text(
-                                              sizes[index],
-                                              style: TextStyle(
-                                                color:
-                                                    _selectedIndex == index
-                                                        ? Colors.orange
-                                                        : Colors.black,
-                                                fontSize: 17,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'PT Sans',
+                                            child: Padding(
+                                              padding: EdgeInsets.only(left: 5),
+                                              child: Text(
+                                                sizes[index].sizeId.toString(),
+                                                style: TextStyle(
+                                                  color:
+                                                      _selectedIndex == index
+                                                          ? Colors.orange
+                                                          : Colors.black,
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'PT Sans',
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -1210,7 +1373,8 @@ class OrderDetailsState extends State<OrderDetails> {
                                               });
                                             },
                                             child: Text(
-                                              loaiHang[index],
+                                              loaiHang[index].categoryName
+                                                  .toString(),
                                               style: TextStyle(
                                                 color:
                                                     isSelected
@@ -1273,7 +1437,10 @@ class OrderDetailsState extends State<OrderDetails> {
                                                 100,
                                               ),
                                       fontFamily: 'PT Sans',
-                                      fontWeight: FontWeight.normal,
+                                      fontWeight:
+                                          txt_ghiChuTaiXe.text.isEmpty
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
                                       fontSize: 18,
                                     ),
                                   ),

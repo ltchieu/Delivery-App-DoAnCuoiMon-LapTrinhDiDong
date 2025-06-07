@@ -1,3 +1,5 @@
+import 'package:do_an_cuoi_mon/model/orde_response_dto.dart';
+import 'package:do_an_cuoi_mon/service/order_service.dart';
 import 'package:do_an_cuoi_mon/view/CustomBottomNavBar.dart';
 import 'package:flutter/material.dart';
 
@@ -9,15 +11,60 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
-  String selectedStatus = 'All'; // Default filter value
+  String selectedStatus = 'All';
+  List<OrderResponseDto> orders = [];
+  bool isLoading = true;
 
   // Add list of available statuses
   final List<String> statuses = [
     'All',
-    'In Progress',
-    'Completed',
-    'Cancelled',
+    'Đang chờ',
+    'Đang giao',
+    'Đã hoàn tất',
+    'Đã huỷ',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrders();
+  }
+
+  // Phương thức tải dữ liệu từ API
+  Future<void> _fetchOrders() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      List<String> orderIds = ['O9af396c4', 'Oc6a1b22a'];
+      List<OrderResponseDto> fetchedOrders = [];
+      for (var orderId in orderIds) {
+        final order = await OrderService.getOrder(orderId);
+        fetchedOrders.add(order);
+      }
+      setState(() {
+        orders = fetchedOrders;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error fetching orders: $e')));
+    }
+  }
+
+  // Lọc đơn hàng dựa trên selectedStatus
+  List<OrderResponseDto> getFilteredOrders() {
+    if (selectedStatus == 'All') {
+      return orders;
+    }
+    return orders.where((order) {
+      return order.orderStatus == selectedStatus;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +82,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       ),
       body: Column(
         children: [
-          // Single Tab
-
-          // New Filter Section with Horizontal Tabs
+          // Filter Section with Horizontal Tabs
           Container(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -99,40 +144,53 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
           // Orders List
           Expanded(
-            child: ListView(
-              children: [
-                _buildOrderSection('Today', [
-                  _buildOrderItem(
-                    'Interstate Shipping',
-                    'Rivera Park Saigon Building A',
-                    'Ha Long Crystal Hotel',
-                    '16/05/2024 | 10:48',
-                    'In Progress',
-                  ),
-                ]),
-                _buildOrderSection('April', [
-                  _buildOrderItem(
-                    'Express - Economy',
-                    'The Coffee House',
-                    '345 Ly Thai To Street, Ward 09, District 10',
-                    '26/04/2024 | 17:40',
-                    'Cancelled',
-                  ),
-                  _buildOrderItem(
-                    'Interstate Shipping',
-                    'Da Nang City, Vietnam',
-                    'Ca Mau City, Tan Thanh Ward',
-                    '26/04/2024 | 08:00',
-                    'Completed',
-                  ),
-                ]),
-              ],
-            ),
+            child:
+                isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : ListView(
+                      children: _buildOrderSections(getFilteredOrders()),
+                    ),
           ),
         ],
       ),
       bottomNavigationBar: const CustomBottomNavBar(currentIndex: 1),
     );
+  }
+
+  // Tạo các section dựa trên ngày tạo đơn hàng
+  List<Widget> _buildOrderSections(List<OrderResponseDto> filteredOrders) {
+    Map<String, List<Widget>> sections = {};
+
+    for (var order in filteredOrders) {
+      String date =
+          order.createdAt?.toLocal().toString().split(' ')[0] ?? 'Unknown';
+      String month = date.split('-')[1];
+      String sectionTitle =
+          month == DateTime.now().toLocal().toString().split('-')[1]
+              ? 'Today'
+              : month;
+
+      if (!sections.containsKey(sectionTitle)) {
+        sections[sectionTitle] = [];
+      }
+      sections[sectionTitle]!.add(
+        _buildOrderItem(
+          order.vehicleType ?? 'Unknown',
+          order.sourceLocation?.latitude.toString() ??
+              '' + ', ' + (order.sourceLocation?.longitude.toString() ?? ''),
+          order.destinationLocation?.latitude.toString() ??
+              '' +
+                  ', ' +
+                  (order.destinationLocation?.longitude.toString() ?? ''),
+          order.createdAt?.toLocal().toString() ?? 'Unknown',
+          order.orderStatus ?? 'Unknown',
+        ),
+      );
+    }
+
+    return sections.entries.map((entry) {
+      return _buildOrderSection(entry.key, entry.value);
+    }).toList();
   }
 
   Widget _buildOrderSection(String title, List<Widget> orders) {
