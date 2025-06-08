@@ -114,11 +114,26 @@ class _HomnePageState extends State<HomePage> {
                         padding: EdgeInsets.only(left: 10, right: 15),
                         child: Icon(FontAwesomeIcons.locationDot),
                       ),
-                      Text(
-                        "Địa chỉ từ cơ sở dữ liệu",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                      Expanded(
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: "Bạn muốn lấy hàng ở đâu?",
+                            border: InputBorder.none,
+                            isCollapsed: true,
+                            hintStyle: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => const LocationPickerScreen(),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -135,6 +150,10 @@ class _HomnePageState extends State<HomePage> {
                           controller: txt_diaChiNhanHang,
                           decoration: InputDecoration(
                             hintText: "Bạn muốn giao hàng đến đâu?",
+                            hintStyle: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
                             border: InputBorder.none,
                             isCollapsed: true,
                           ),
@@ -204,7 +223,6 @@ class _HomnePageState extends State<HomePage> {
               },
             ),
             SizedBox(height: 30),
-            Text(bannerList.elementAt(_selectedIndex)),
             TextButton(
               onPressed: () {
                 MyApp.navigatorKey.currentState!.pushNamed('CTDonHang');

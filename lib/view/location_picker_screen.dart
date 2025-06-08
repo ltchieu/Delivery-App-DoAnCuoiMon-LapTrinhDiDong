@@ -1,6 +1,7 @@
 import 'package:do_an_cuoi_mon/model/location_dto.dart';
 import 'package:do_an_cuoi_mon/service/map_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
@@ -16,6 +17,8 @@ class LocationPickerScreen extends StatefulWidget {
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
   final TextEditingController _addressController = TextEditingController();
   final FocusNode _addressFocusNode = FocusNode();
+  final MapService _mapService = MapService();
+  LatLng? currentLocation = null;
 
   @override
   void dispose() {
@@ -87,23 +90,53 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: TextField(
-                      controller: _addressController,
-                      focusNode: _addressFocusNode,
-                      style: const TextStyle(
-                        fontFamily: 'PTSans',
-                        fontSize: 16,
-                      ),
-                      decoration: const InputDecoration(
-                        hintText: 'Số nhà, đường, phường, quận',
-                        hintStyle: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 16,
-                          fontFamily: 'PTSans',
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12),
-                      ),
+                    child: TypeAheadField<String>(
+                      suggestionsCallback: (pattern) async {
+                        final suggestions = await _mapService.getSuggestions(
+                          pattern,
+                        );
+                        return suggestions;
+                      },
+                      itemBuilder: (context, suggestion) {
+                        return ListTile(title: Text(suggestion));
+                      },
+
+                      onSelected: (suggestion) async {
+                        _addressController.text = suggestion;
+
+                        final placeId =
+                            _mapService.descriptionToPlaceIdMap[suggestion];
+                        if (placeId != null) {
+                          final LatLng? location = await _mapService
+                              .getCoordinatesFromPlaceId(placeId);
+                          if (location != null) {
+                            setState(() {
+                              currentLocation = location;
+                            });
+                          }
+                        }
+                      },
+
+                      builder: (context, controller, focusNode) {
+                        return TextField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          style: const TextStyle(
+                            fontFamily: 'PTSans',
+                            fontSize: 16,
+                          ),
+                          decoration: const InputDecoration(
+                            hintText: 'Số nhà, đường, phường, quận',
+                            hintStyle: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16,
+                              fontFamily: 'PTSans',
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -503,7 +536,7 @@ class _MapScreenState extends State<MapScreen> {
 
           // Current location button
           Positioned(
-            top: 520,
+            bottom: 170,
             right: 16,
             child: Container(
               decoration: BoxDecoration(
@@ -589,31 +622,6 @@ class _MapScreenState extends State<MapScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const SizedBox(height: 8),
-                    Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Address suggestions
-                    _buildAddressSuggestion(
-                      '106/14 Cống Lở',
-                      'Phường 15, Quận Tân Bình, Hồ Chí Minh, Việt Nam',
-                      true,
-                    ),
-                    _buildAddressSuggestion(
-                      '106/18 Cống Lở',
-                      'Phường 15, Quận Tân Bình, Hồ Chí Minh, Việt Nam',
-                      false,
-                    ),
-
-                    const SizedBox(height: 16),
-
                     // Confirm button
                     Container(
                       width: double.infinity,
@@ -646,59 +654,6 @@ class _MapScreenState extends State<MapScreen> {
                   ],
                 ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAddressSuggestion(
-    String address,
-    String fullAddress,
-    bool isSelected,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: isSelected ? Colors.orange : Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.location_on,
-              color: isSelected ? Colors.white : Colors.grey[600],
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  address,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.orange : Colors.black,
-                    fontFamily: 'PTSans',
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  fullAddress,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                    fontFamily: 'PTSans',
-                  ),
-                ),
-              ],
             ),
           ),
         ],
