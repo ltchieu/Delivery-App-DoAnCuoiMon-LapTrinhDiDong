@@ -1,20 +1,17 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'size_dto.g.dart';
+
+@JsonSerializable()
 class SizeDto {
-  String? sizeId;
-  String? description;
-  double? weight;
+  final String? sizeId;
+  final String? description;
+  final double? weight;
 
   SizeDto({this.sizeId, this.description, this.weight});
 
-  Map<String, dynamic> toJson() {
-    return {'sizeId': sizeId, 'description': description, 'weight': weight};
-  }
+  factory SizeDto.fromJson(Map<String, dynamic> json) =>
+      _$SizeDtoFromJson(json);
 
-  // Chuyển từ JSON sang DTO
-  factory SizeDto.fromJson(Map<String, dynamic> json) {
-    return SizeDto(
-      sizeId: json['sizeId'] as String?,
-      description: json['description'] as String?,
-      weight: (json['weight'] as num?)?.toDouble(),
-    );
-  }
+  Map<String, dynamic> toJson() => _$SizeDtoToJson(this);
 }

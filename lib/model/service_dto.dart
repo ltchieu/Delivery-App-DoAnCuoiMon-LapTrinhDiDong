@@ -1,19 +1,17 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'service_dto.g.dart';
+
+@JsonSerializable()
 class ServiceDto {
-  String? serviceId;
-  String? name;
-  double? price;
+  final String? serviceId;
+  final String? name;
+  final double? price;
 
   ServiceDto({this.serviceId, this.name, this.price});
 
-  Map<String, dynamic> toJson() {
-    return {'serviceId': serviceId, 'name': name, 'price': price};
-  }
+  factory ServiceDto.fromJson(Map<String, dynamic> json) =>
+      _$ServiceDtoFromJson(json);
 
-  factory ServiceDto.fromJson(Map<String, dynamic> json) {
-    return ServiceDto(
-      serviceId: json['serviceId'] as String?,
-      name: json['name'] as String?,
-      price: (json['price'] as num?)?.toDouble(),
-    );
-  }
+  Map<String, dynamic> toJson() => _$ServiceDtoToJson(this);
 }

@@ -1,14 +1,20 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:do_an_cuoi_mon/model/location_dto.dart';
 
+part 'orde_response_dto.g.dart';
+
+@JsonSerializable(
+  explicitToJson: true,
+) // Sử dụng explicitToJson để xử lý nested object
 class OrderResponseDto {
-  String? orderID;
-  LocationDto? sourceLocation;
-  LocationDto? destinationLocation;
-  String? vehicleType;
-  double? totalAmount;
-  String? orderStatus;
-  String? paymentStatus;
-  DateTime? createdAt;
+  final String? orderID;
+  final LocationDto? sourceLocation;
+  final LocationDto? destinationLocation;
+  final String? vehicleType;
+  final double? totalAmount;
+  final String? orderStatus;
+  final String? paymentStatus;
+  final DateTime? createdAt;
 
   OrderResponseDto({
     this.orderID,
@@ -21,29 +27,8 @@ class OrderResponseDto {
     this.createdAt,
   });
 
-  factory OrderResponseDto.fromJson(Map<String, dynamic> json) {
-    return OrderResponseDto(
-      orderID: json['orderID'] as String?,
-      sourceLocation:
-          json['sourceLocation'] != null
-              ? LocationDto.fromJson(
-                json['sourceLocation'] as Map<String, dynamic>,
-              )
-              : null,
-      destinationLocation:
-          json['destinationLocation'] != null
-              ? LocationDto.fromJson(
-                json['destinationLocation'] as Map<String, dynamic>,
-              )
-              : null,
-      vehicleType: json['vehicleType'] as String?,
-      totalAmount: (json['totalAmount'] as num?)?.toDouble(),
-      orderStatus: json['orderStatus'] as String?,
-      paymentStatus: json['paymentStatus'] as String?,
-      createdAt:
-          json['createdAt'] != null
-              ? DateTime.parse(json['createdAt'] as String)
-              : null,
-    );
-  }
+  factory OrderResponseDto.fromJson(Map<String, dynamic> json) =>
+      _$OrderResponseDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$OrderResponseDtoToJson(this);
 }

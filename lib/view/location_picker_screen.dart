@@ -1,4 +1,9 @@
+import 'package:do_an_cuoi_mon/model/location_dto.dart';
+import 'package:do_an_cuoi_mon/service/map_service.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
+import 'package:permission_handler/permission_handler.dart' as per;
 
 class LocationPickerScreen extends StatefulWidget {
   const LocationPickerScreen({Key? key}) : super(key: key);
@@ -414,60 +419,81 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   String selectedAddress = '106/14 Cống Lở';
+  late GoogleMapController mapController;
+  Location _locationController = new Location();
+  LatLng? _currentLocation = null;
+
+  @override
+  void initState() {
+    super.initState();
+    getLocationUpdates();
+  }
+
+  Future<void> requestLocationPermission(per.Permission permission) async {
+    if (await permission.isDenied) {
+      await permission.request();
+    }
+  }
+
+  Future<void> getLocationUpdates() async {
+    bool _serviceEnable;
+    PermissionStatus _permissionGranted;
+    _serviceEnable = await _locationController.serviceEnabled();
+    if (_serviceEnable) {
+      _serviceEnable = await _locationController.requestService();
+    } else {
+      return;
+    }
+
+    _permissionGranted = await _locationController.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await _locationController.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    print("Location service enabled and permission granted");
+    _locationController.onLocationChanged.listen((LocationData curLocation) {
+      if (curLocation.latitude != null && curLocation.longitude != null) {
+        setState(() {
+          _currentLocation = LatLng(
+            curLocation.latitude!,
+            curLocation.longitude!,
+          );
+          print("Current location set to: $_currentLocation");
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Map container (placeholder)
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.grey[200],
-            child: Stack(
-              children: [
-                // Map background pattern
-                Container(
-                  decoration: BoxDecoration(color: Colors.grey[100]),
-                  child: CustomPaint(
-                    painter: MapPainter(),
-                    size: Size.infinite,
-                  ),
+          // Google Map
+          _currentLocation == null
+              ? Center(child: Text("Loading..."))
+              : GoogleMap(
+                // onMapCreated: _onMapCreated,
+                initialCameraPosition: const CameraPosition(
+                  target: LatLng(10.7769, 106.7009), // Tọa độ TP.HCM
+                  zoom: 13.0,
                 ),
-
-                // Orange pin with arrow
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.orange,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      Container(width: 2, height: 20, color: Colors.orange),
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.orange,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
+                zoomControlsEnabled: true,
+                zoomGesturesEnabled: true,
+                markers: {
+                  Marker(
+                    markerId: MarkerId("_currentPosition"),
+                    icon: BitmapDescriptor.defaultMarker,
+                    position: _currentLocation!,
                   ),
-                ),
-              ],
-            ),
-          ),
+                },
+                mapType: MapType.normal,
+                myLocationEnabled: true,
+                myLocationButtonEnabled: true,
+              ),
 
           // Back button
           Positioned(
@@ -627,50 +653,50 @@ class _MapScreenState extends State<MapScreen> {
   }
 }
 
-class MapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = Colors.grey[300]!
-          ..strokeWidth = 1;
+// class MapPainter extends CustomPainter {
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     final paint =
+//         Paint()
+//           ..color = Colors.grey[300]!
+//           ..strokeWidth = 1;
 
-    // Draw grid lines to simulate map
-    for (int i = 0; i < size.width; i += 50) {
-      canvas.drawLine(
-        Offset(i.toDouble(), 0),
-        Offset(i.toDouble(), size.height),
-        paint,
-      );
-    }
+//     // Draw grid lines to simulate map
+//     for (int i = 0; i < size.width; i += 50) {
+//       canvas.drawLine(
+//         Offset(i.toDouble(), 0),
+//         Offset(i.toDouble(), size.height),
+//         paint,
+//       );
+//     }
 
-    for (int i = 0; i < size.height; i += 50) {
-      canvas.drawLine(
-        Offset(0, i.toDouble()),
-        Offset(size.width, i.toDouble()),
-        paint,
-      );
-    }
+//     for (int i = 0; i < size.height; i += 50) {
+//       canvas.drawLine(
+//         Offset(0, i.toDouble()),
+//         Offset(size.width, i.toDouble()),
+//         paint,
+//       );
+//     }
 
-    // Draw some street-like lines
-    final streetPaint =
-        Paint()
-          ..color = Colors.grey[400]!
-          ..strokeWidth = 3;
+//     // Draw some street-like lines
+//     final streetPaint =
+//         Paint()
+//           ..color = Colors.grey[400]!
+//           ..strokeWidth = 3;
 
-    canvas.drawLine(
-      Offset(0, size.height * 0.3),
-      Offset(size.width, size.height * 0.3),
-      streetPaint,
-    );
+//     canvas.drawLine(
+//       Offset(0, size.height * 0.3),
+//       Offset(size.width, size.height * 0.3),
+//       streetPaint,
+//     );
 
-    canvas.drawLine(
-      Offset(size.width * 0.4, 0),
-      Offset(size.width * 0.4, size.height),
-      streetPaint,
-    );
-  }
+//     canvas.drawLine(
+//       Offset(size.width * 0.4, 0),
+//       Offset(size.width * 0.4, size.height),
+//       streetPaint,
+//     );
+//   }
 
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
-}
+//   @override
+//   bool shouldRepaint(CustomPainter oldDelegate) => false;
+// }
