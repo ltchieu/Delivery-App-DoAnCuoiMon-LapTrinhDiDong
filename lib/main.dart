@@ -29,7 +29,6 @@ class MyApp extends StatelessWidget {
         '/Welcome': (context) => const WelcomeScreen(),
         '/home': (context) => const HomePage(),
         '/login': (context) => const LoginScreen(),
-        'CTDonHang': (context) => OrderDetails(),
         'Notification': (context) => NotificationScreen(),
         'DiaChiGiaoHang': (context) => PackageTrackingScreen(),
       },

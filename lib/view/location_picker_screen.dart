@@ -1,5 +1,6 @@
 import 'package:do_an_cuoi_mon/model/location_dto.dart';
 import 'package:do_an_cuoi_mon/service/map_service.dart';
+import 'package:do_an_cuoi_mon/view/delivery_info_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geolocator/geolocator.dart';
@@ -452,10 +453,9 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  String selectedAddress = '106/14 Cống Lở';
   late GoogleMapController mapController;
   Set<Marker> _maker = {};
-  LatLng? _currentLocation = null;
+  LatLng? currentLocation;
 
   @override
   void initState() {
@@ -465,14 +465,14 @@ class _MapScreenState extends State<MapScreen> {
 
   // void _onMarkerDragEnd(LatLng newPosition) {
   //   setState(() {
-  //     _currentLocation = newPosition;
+  //     currentLocation = newPosition;
   //   });
-  //   print("Marker dragged to: $_currentLocation");
+  //   print("Marker dragged to: $currentLocation");
   // }
 
   void _onMapTapped(LatLng tappedPosition) {
     setState(() {
-      _currentLocation = tappedPosition;
+      currentLocation = tappedPosition;
       _maker.clear();
       _maker.add(
         Marker(
@@ -482,7 +482,7 @@ class _MapScreenState extends State<MapScreen> {
         ),
       );
     });
-    print("Map tapped at: $_currentLocation");
+    print("Map tapped at: $currentLocation");
   }
 
   Future<void> requestLocationPermission(per.Permission permission) async {
@@ -628,7 +628,23 @@ class _MapScreenState extends State<MapScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.pop(context, selectedAddress);
+                          if (currentLocation != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => DeliveryInfoScreen(
+                                      toaDoNguoiNhan: currentLocation,
+                                    ),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Chưa chọn vị trí lấy hàng'),
+                              ),
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
@@ -661,51 +677,3 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 }
-
-// class MapPainter extends CustomPainter {
-//   @override
-//   void paint(Canvas canvas, Size size) {
-//     final paint =
-//         Paint()
-//           ..color = Colors.grey[300]!
-//           ..strokeWidth = 1;
-
-//     // Draw grid lines to simulate map
-//     for (int i = 0; i < size.width; i += 50) {
-//       canvas.drawLine(
-//         Offset(i.toDouble(), 0),
-//         Offset(i.toDouble(), size.height),
-//         paint,
-//       );
-//     }
-
-//     for (int i = 0; i < size.height; i += 50) {
-//       canvas.drawLine(
-//         Offset(0, i.toDouble()),
-//         Offset(size.width, i.toDouble()),
-//         paint,
-//       );
-//     }
-
-//     // Draw some street-like lines
-//     final streetPaint =
-//         Paint()
-//           ..color = Colors.grey[400]!
-//           ..strokeWidth = 3;
-
-//     canvas.drawLine(
-//       Offset(0, size.height * 0.3),
-//       Offset(size.width, size.height * 0.3),
-//       streetPaint,
-//     );
-
-//     canvas.drawLine(
-//       Offset(size.width * 0.4, 0),
-//       Offset(size.width * 0.4, size.height),
-//       streetPaint,
-//     );
-//   }
-
-//   @override
-//   bool shouldRepaint(CustomPainter oldDelegate) => false;
-// }

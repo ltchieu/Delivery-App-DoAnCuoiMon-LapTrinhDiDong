@@ -10,7 +10,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 class OrderDetails extends StatefulWidget {
-  const OrderDetails({super.key});
+  final String diaChiNguoiNhan;
+  const OrderDetails({required this.diaChiNguoiNhan, super.key});
 
   @override
   State<OrderDetails> createState() => OrderDetailsState();
