@@ -1,6 +1,7 @@
 import 'package:do_an_cuoi_mon/model/location_dto.dart';
 import 'package:do_an_cuoi_mon/service/map_service.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:permission_handler/permission_handler.dart' as per;
@@ -420,13 +421,35 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   String selectedAddress = '106/14 Cống Lở';
   late GoogleMapController mapController;
-  Location _locationController = new Location();
+  Set<Marker> _maker = {};
   LatLng? _currentLocation = null;
 
   @override
   void initState() {
     super.initState();
-    getLocationUpdates();
+    // getCurrentLocation();
+  }
+
+  // void _onMarkerDragEnd(LatLng newPosition) {
+  //   setState(() {
+  //     _currentLocation = newPosition;
+  //   });
+  //   print("Marker dragged to: $_currentLocation");
+  // }
+
+  void _onMapTapped(LatLng tappedPosition) {
+    setState(() {
+      _currentLocation = tappedPosition;
+      _maker.clear();
+      _maker.add(
+        Marker(
+          markerId: MarkerId("newCurrentLocation"),
+          icon: BitmapDescriptor.defaultMarker,
+          position: LatLng(tappedPosition.latitude, tappedPosition.longitude),
+        ),
+      );
+    });
+    print("Map tapped at: $_currentLocation");
   }
 
   Future<void> requestLocationPermission(per.Permission permission) async {
@@ -435,36 +458,26 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  Future<void> getLocationUpdates() async {
-    bool _serviceEnable;
-    PermissionStatus _permissionGranted;
-    _serviceEnable = await _locationController.serviceEnabled();
-    if (_serviceEnable) {
-      _serviceEnable = await _locationController.requestService();
-    } else {
-      return;
+  Future<Position> getCurrentLocation() async {
+    bool serviceEnable;
+    LocationPermission permission;
+
+    serviceEnable = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnable) {
+      return Future.error("Location services are disable");
     }
 
-    _permissionGranted = await _locationController.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await _locationController.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        return;
-      }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      return Future.error("Location permission denied");
     }
 
-    print("Location service enabled and permission granted");
-    _locationController.onLocationChanged.listen((LocationData curLocation) {
-      if (curLocation.latitude != null && curLocation.longitude != null) {
-        setState(() {
-          _currentLocation = LatLng(
-            curLocation.latitude!,
-            curLocation.longitude!,
-          );
-          print("Current location set to: $_currentLocation");
-        });
-      }
-    });
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error("Location denied permanently");
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+    return position;
   }
 
   @override
@@ -473,28 +486,69 @@ class _MapScreenState extends State<MapScreen> {
       body: Stack(
         children: [
           // Google Map
-          _currentLocation == null
-              ? Center(child: Text("Loading..."))
-              : GoogleMap(
-                // onMapCreated: _onMapCreated,
-                initialCameraPosition: const CameraPosition(
-                  target: LatLng(10.7769, 106.7009), // Tọa độ TP.HCM
-                  zoom: 13.0,
-                ),
-                zoomControlsEnabled: true,
-                zoomGesturesEnabled: true,
-                markers: {
-                  Marker(
-                    markerId: MarkerId("_currentPosition"),
-                    icon: BitmapDescriptor.defaultMarker,
-                    position: _currentLocation!,
-                  ),
-                },
-                mapType: MapType.normal,
-                myLocationEnabled: true,
-                myLocationButtonEnabled: true,
-              ),
+          GoogleMap(
+            onMapCreated: (GoogleMapController controller) {
+              mapController = controller;
+            },
+            initialCameraPosition: const CameraPosition(
+              target: LatLng(10.7769, 106.7009), // Tọa độ TP.HCM
+              zoom: 13.0,
+            ),
+            zoomControlsEnabled: true,
+            markers: _maker,
+            mapType: MapType.normal,
+            myLocationButtonEnabled: false,
+            onTap: _onMapTapped,
+          ),
 
+          // Current location button
+          Positioned(
+            top: 520,
+            right: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                onPressed: () async {
+                  Position position = await getCurrentLocation();
+                  mapController.animateCamera(
+                    CameraUpdate.newCameraPosition(
+                      CameraPosition(
+                        target: LatLng(position.latitude, position.longitude),
+                        zoom: 15.0,
+                      ),
+                    ),
+                  );
+                  setState(() {
+                    _maker.clear();
+                    _maker.add(
+                      Marker(
+                        markerId: MarkerId("currentLocation"),
+                        icon: BitmapDescriptor.defaultMarkerWithHue(
+                          BitmapDescriptor.hueCyan,
+                        ),
+                        position: LatLng(position.latitude, position.longitude),
+                      ),
+                    );
+                  });
+                },
+                icon: const Icon(
+                  Icons.my_location,
+                  color: Colors.black,
+                  size: 30,
+                ),
+              ),
+            ),
+          ),
           // Back button
           Positioned(
             top: 50,
