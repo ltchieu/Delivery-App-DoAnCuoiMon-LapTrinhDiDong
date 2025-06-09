@@ -4,12 +4,18 @@ import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class DeliveryInfoScreen extends StatefulWidget {
+  final String diaChiNguoiGui;
+  final String tenNguoiGui;
+  final String SDTNguoiGui;
   final LatLng? toaDoNguoiNhan;
   final bool isDiaChiNhanHangSelected;
   const DeliveryInfoScreen({
     Key? key,
     required this.toaDoNguoiNhan,
     required this.isDiaChiNhanHangSelected,
+    required this.tenNguoiGui,
+    required this.SDTNguoiGui,
+    required this.diaChiNguoiGui,
   }) : super(key: key);
 
   @override
@@ -444,6 +450,9 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
                           MaterialPageRoute(
                             builder:
                                 (context) => OrderDetails(
+                                  tenNguoiGui: widget.tenNguoiGui,
+                                  SDTNguoiGui: widget.SDTNguoiGui,
+                                  diaChiNguoiGui: widget.diaChiNguoiGui,
                                   diaChiNguoiNhan: diaChiNguoiNhan,
                                   tenNguoiNhan: _recipientNameController.text,
                                   SDTNguoiNhan: _phoneController.text,

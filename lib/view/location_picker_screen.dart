@@ -7,9 +7,17 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart' as per;
 
 class LocationPickerScreen extends StatefulWidget {
+  final String diaChiNguoiGui;
+  final String tenNguoiGui;
+  final String SDTNguoiGui;
   final bool isDiaChiNhanHangSelected;
-  const LocationPickerScreen({Key? key, required this.isDiaChiNhanHangSelected})
-    : super(key: key);
+  const LocationPickerScreen({
+    Key? key,
+    required this.isDiaChiNhanHangSelected,
+    required this.tenNguoiGui,
+    required this.SDTNguoiGui,
+    required this.diaChiNguoiGui,
+  }) : super(key: key);
   @override
   State<LocationPickerScreen> createState() => _LocationPickerScreenState();
 }
@@ -120,6 +128,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                               MaterialPageRoute(
                                 builder:
                                     (context) => DeliveryInfoScreen(
+                                      tenNguoiGui: widget.tenNguoiGui,
+                                      SDTNguoiGui: widget.SDTNguoiGui,
+                                      diaChiNguoiGui: widget.diaChiNguoiGui,
                                       isDiaChiNhanHangSelected:
                                           widget.isDiaChiNhanHangSelected,
                                       toaDoNguoiNhan: currentLocation,
@@ -430,6 +441,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 MaterialPageRoute(
                   builder:
                       (context) => MapScreen(
+                        tenNguoiGui: widget.tenNguoiGui,
+                        SDTNguoiGui: widget.SDTNguoiGui,
+                        diaChiNguoiGui: widget.diaChiNguoiGui,
                         isDiaChiNhanHangSelected:
                             widget.isDiaChiNhanHangSelected,
                       ),
@@ -472,9 +486,17 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 }
 
 class MapScreen extends StatefulWidget {
+  final String diaChiNguoiGui;
+  final String tenNguoiGui;
+  final String SDTNguoiGui;
   final bool isDiaChiNhanHangSelected;
-  const MapScreen({Key? key, required this.isDiaChiNhanHangSelected})
-    : super(key: key);
+  const MapScreen({
+    Key? key,
+    required this.isDiaChiNhanHangSelected,
+    required this.tenNguoiGui,
+    required this.SDTNguoiGui,
+    required this.diaChiNguoiGui,
+  }) : super(key: key);
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -530,7 +552,10 @@ class _MapScreenState extends State<MapScreen> {
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
-      return Future.error("Location permission denied");
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error("Location permission denied");
+      }
     }
 
     if (permission == LocationPermission.deniedForever) {
@@ -662,6 +687,9 @@ class _MapScreenState extends State<MapScreen> {
                               MaterialPageRoute(
                                 builder:
                                     (context) => DeliveryInfoScreen(
+                                      tenNguoiGui: widget.tenNguoiGui,
+                                      SDTNguoiGui: widget.SDTNguoiGui,
+                                      diaChiNguoiGui: widget.diaChiNguoiGui,
                                       isDiaChiNhanHangSelected:
                                           widget.isDiaChiNhanHangSelected,
                                       toaDoNguoiNhan: currentLocation,

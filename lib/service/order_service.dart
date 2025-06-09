@@ -3,11 +3,12 @@ import 'package:do_an_cuoi_mon/model/category_dto.dart';
 import 'package:do_an_cuoi_mon/model/orde_response_dto.dart';
 import 'package:do_an_cuoi_mon/model/service_dto.dart';
 import 'package:do_an_cuoi_mon/model/size_dto.dart';
+import 'package:do_an_cuoi_mon/model/vehicles_dto.dart';
 import 'package:http/http.dart' as http;
 
 class OrderService {
   static const String baseUrl =
-      'http://10.0.2.2:5141/api/Orders'; // Thay bằng URL thực tế
+      'http://localhost:5141/api/Orders'; // Thay bằng URL thực tế
 
   // // Tạo đơn hàng
   // static Future<OrderResponseDto> createOrder(OrderCreateDto orderDto) async {
@@ -88,7 +89,24 @@ class OrderService {
       return jsonData.map((json) => CategoryDto.fromJson(json)).toList();
     } else {
       throw Exception(
-        'Failed to load sizes: ${response.statusCode} - ${response.body}',
+        'Failed to load categories: ${response.statusCode} - ${response.body}',
+      );
+    }
+  }
+
+  // Lấy tất cả các loại xe
+  static Future<List<VehiclesDto>> getVehicles() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/vehicles'),
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonData = jsonDecode(response.body);
+      return jsonData.map((json) => VehiclesDto.fromJson(json)).toList();
+    } else {
+      throw Exception(
+        'Failed to load vehicles: ${response.statusCode} - ${response.body}',
       );
     }
   }

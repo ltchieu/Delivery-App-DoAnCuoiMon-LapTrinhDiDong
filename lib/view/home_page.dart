@@ -13,8 +13,8 @@ class HomePage extends StatefulWidget {
 
 class _HomnePageState extends State<HomePage> {
   TextEditingController txt_diaChiNhanHang = TextEditingController();
-  String diaChiNhanHang = "";
   bool isDiaChiNhanHangSelected = false;
+  String diaChiNhanHang = "";
   String tenNguoiGui = "";
   String sdtNguoiGui = "";
 
@@ -53,6 +53,9 @@ class _HomnePageState extends State<HomePage> {
       MaterialPageRoute(
         builder:
             (context) => LocationPickerScreen(
+              tenNguoiGui: tenNguoiGui,
+              SDTNguoiGui: sdtNguoiGui,
+              diaChiNguoiGui: diaChiNhanHang,
               isDiaChiNhanHangSelected: isDcNhanHangSelected,
             ),
       ),
@@ -249,6 +252,9 @@ class _HomnePageState extends State<HomePage> {
                               MaterialPageRoute(
                                 builder:
                                     (context) => LocationPickerScreen(
+                                      tenNguoiGui: tenNguoiGui,
+                                      SDTNguoiGui: sdtNguoiGui,
+                                      diaChiNguoiGui: diaChiNhanHang,
                                       isDiaChiNhanHangSelected:
                                           isDiaChiNhanHangSelected,
                                     ),
@@ -280,7 +286,7 @@ class _HomnePageState extends State<HomePage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CircleAvatar(
-                        radius: 35,
+                        radius: 30,
                         backgroundImage: AssetImage(myList[index]["image"]!),
                         backgroundColor: Colors.white,
                       ),

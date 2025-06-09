@@ -2,14 +2,18 @@ import 'dart:collection';
 import 'package:do_an_cuoi_mon/model/category_dto.dart';
 import 'package:do_an_cuoi_mon/model/service_dto.dart';
 import 'package:do_an_cuoi_mon/model/size_dto.dart';
+import 'package:do_an_cuoi_mon/model/vehicles_dto.dart';
 import 'package:do_an_cuoi_mon/service/order_service.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 class OrderDetails extends StatefulWidget {
+  final String diaChiNguoiGui;
+  final String tenNguoiGui;
+  final String SDTNguoiGui;
+
   final String diaChiNguoiNhan;
   final String tenNguoiNhan;
   final String SDTNguoiNhan;
@@ -17,6 +21,9 @@ class OrderDetails extends StatefulWidget {
     required this.diaChiNguoiNhan,
     required this.tenNguoiNhan,
     required this.SDTNguoiNhan,
+    required this.tenNguoiGui,
+    required this.SDTNguoiGui,
+    required this.diaChiNguoiGui,
     super.key,
   });
 
@@ -39,31 +46,20 @@ class OrderDetailsState extends State<OrderDetails> {
   List<SizeDto> sizes = [];
   List<ServiceDto> services = [];
   List<CategoryDto> loaiHang = [];
-
-  final List<String> lst_yeuCauDacBiet = [
-    'Túi giữ nhiệt',
-    'Giao hàng dễ vỡ',
-    'Gửi SMS cho người nhận',
-    'Quay lại điểm lấy hàng',
-    'Giao hàng tận tay',
-  ];
-
-  int _khoangCach = 10;
-  String _diaChiNhanHang =
-      'Địa chỉ từ CSDL'; // địa chỉ nhận hàng lấy từ cơ sở dữ liệu
-
-  String _diaChiGiaoHang = 'Địa chỉ giao hàng';
-  String _tenNguoiNhan = 'Tên người nhận';
-  String _sdtNguoiNhan = '0963552971';
+  List<VehiclesDto> loaiXe = [];
 
   bool _isExpand = false;
   int _selectedIndex = 0;
   int _selectedServiceIndex = -1;
+  int _selectedLoaiXeIndex = -1;
   late HashMap<int, bool> _lstSelectedHangHoa = HashMap();
   late String ngayLayHang;
   final formatter = DateFormat('HH:mm');
+  final currencyFormatter = NumberFormat("#,##0", "vi_VN");
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
+  double tongTien = 0;
+  bool _isEnable = false;
 
   String formatVietnameseDate(DateTime date) {
     const weekdays = [
@@ -92,11 +88,28 @@ class OrderDetailsState extends State<OrderDetails> {
     _fetchServices();
     _fetchSizes();
     _fetchCategories();
+    _fetchVehicles();
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+
+  bool _checkDieuKienDatDon() {
+    if (_selectedLoaiXeIndex == -1) {
+      return false;
+    }
+    if (_selectedServiceIndex == -1) {
+      return false;
+    }
+    if (txt_khoiLuong.text.isEmpty) {
+      return false;
+    }
+    if (!_lstSelectedHangHoa.containsValue(true)) {
+      return false;
+    }
+    return true;
   }
 
   Future<void> _fetchServices() async {
@@ -156,6 +169,26 @@ class OrderDetailsState extends State<OrderDetails> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error fetching categories: $e')));
+    }
+  }
+
+  Future<void> _fetchVehicles() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final fetchedLoaiXe = await OrderService.getVehicles();
+      setState(() {
+        loaiXe = fetchedLoaiXe;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error fetching vehicles: $e')));
     }
   }
 
@@ -587,20 +620,6 @@ class OrderDetailsState extends State<OrderDetails> {
                                           color: Colors.black,
                                         ),
                                       ),
-                                      TextSpan(
-                                        text: _khoangCach.toString() + 'km',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.normal,
-                                          fontFamily: 'PT Sans',
-                                          color: const Color.fromARGB(
-                                            255,
-                                            124,
-                                            124,
-                                            124,
-                                          ),
-                                        ),
-                                      ),
                                     ],
                                   ),
                                 ),
@@ -655,7 +674,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                     children: [
                                       SizedBox(height: 16),
                                       Text(
-                                        _diaChiGiaoHang,
+                                        widget.diaChiNguoiGui,
                                         style: TextStyle(
                                           color: Colors.black,
                                           fontFamily: 'PT Sans',
@@ -667,9 +686,9 @@ class OrderDetailsState extends State<OrderDetails> {
                                       RichText(
                                         text: TextSpan(
                                           children: [
-                                            if (widget.tenNguoiNhan.isNotEmpty)
+                                            if (widget.tenNguoiGui.isNotEmpty)
                                               TextSpan(
-                                                text: widget.tenNguoiNhan,
+                                                text: widget.tenNguoiGui,
                                                 style: TextStyle(
                                                   color: const Color.fromARGB(
                                                     255,
@@ -682,10 +701,10 @@ class OrderDetailsState extends State<OrderDetails> {
                                                 ),
                                               ),
 
-                                            if (widget.SDTNguoiNhan.isNotEmpty)
+                                            if (widget.SDTNguoiGui.isNotEmpty)
                                               TextSpan(
                                                 text:
-                                                    ' | ' + widget.SDTNguoiNhan,
+                                                    ' | ' + widget.SDTNguoiGui,
                                                 style: TextStyle(
                                                   color: const Color.fromARGB(
                                                     255,
@@ -886,11 +905,6 @@ class OrderDetailsState extends State<OrderDetails> {
                                     ],
                                   ),
                                 ),
-
-                                SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.12,
-                                ),
                                 Icon(Icons.arrow_forward_ios, size: 18),
                               ],
                             ),
@@ -980,6 +994,7 @@ class OrderDetailsState extends State<OrderDetails> {
                             },
                             child: Column(
                               children: [
+                                // Expanded(child: )
                                 Row(
                                   children: [
                                     Padding(
@@ -992,24 +1007,24 @@ class OrderDetailsState extends State<OrderDetails> {
                                         color: Colors.grey,
                                       ),
                                     ),
-
-                                    Text(
-                                      'Thông tin hàng hóa',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontFamily: 'PT Sans',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 19,
+                                    Expanded(
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            'Thông tin hàng hóa',
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontFamily: 'PT Sans',
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 19,
+                                            ),
+                                          ),
+                                          Text(
+                                            '*',
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                    Text(
-                                      '*',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                    SizedBox(
-                                      width:
-                                          MediaQuery.of(context).size.width *
-                                          0.24,
                                     ),
                                     Icon(
                                       _isExpand
@@ -1232,6 +1247,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                         onTap: () {
                                           setState(() {
                                             _selectedIndex = index;
+                                            _isEnable = _checkDieuKienDatDon();
                                           });
                                         },
                                         child: Container(
@@ -1304,6 +1320,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                   child: TextField(
                                     controller: txt_khoiLuong,
                                     onChanged: (value) {
+                                      _isEnable = _checkDieuKienDatDon();
                                       if (int.tryParse(value) == null) {
                                         ScaffoldMessenger.of(
                                           context,
@@ -1354,6 +1371,10 @@ class OrderDetailsState extends State<OrderDetails> {
                                         ),
                                       ),
                                     ),
+                                    Text(
+                                      '*',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
                                   ],
                                 ),
 
@@ -1369,6 +1390,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                       scrollDirection: Axis.horizontal,
                                       itemCount: loaiHang.length,
                                       itemBuilder: (context, index) {
+                                        _isEnable = _checkDieuKienDatDon();
                                         bool isSelected =
                                             _lstSelectedHangHoa[index] == true;
                                         return Padding(
@@ -1376,7 +1398,10 @@ class OrderDetailsState extends State<OrderDetails> {
                                           child: MaterialButton(
                                             shape: StadiumBorder(
                                               side: BorderSide(
-                                                color: Colors.black,
+                                                color:
+                                                    isSelected
+                                                        ? Colors.orange
+                                                        : Colors.black,
                                                 width: 1,
                                               ),
                                             ),
@@ -1485,7 +1510,7 @@ class OrderDetailsState extends State<OrderDetails> {
                             Padding(
                               padding: EdgeInsets.only(left: 20, top: 5),
                               child: Text(
-                                'Yêu cầu đặc biệt',
+                                'Loại xe',
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontFamily: 'PT Sans',
@@ -1500,18 +1525,45 @@ class OrderDetailsState extends State<OrderDetails> {
                         Expanded(
                           child: ListView.builder(
                             physics: NeverScrollableScrollPhysics(),
-                            itemCount: lst_yeuCauDacBiet.length,
+                            itemCount: loaiXe.length,
                             itemBuilder: (context, index) {
                               return Padding(
                                 padding: EdgeInsets.all(10),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.black,
-                                      width: 0.5,
+                                child: MaterialButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _isEnable = _checkDieuKienDatDon();
+                                      if (_selectedIndex == index) {
+                                        tongTien += loaiXe[index].price;
+                                      }
+                                      _selectedLoaiXeIndex = index;
+                                    });
+                                  },
+                                  shape: RoundedRectangleBorder(
+                                    side: BorderSide(
+                                      color:
+                                          _selectedLoaiXeIndex == index
+                                              ? const Color.fromARGB(
+                                                255,
+                                                254,
+                                                140,
+                                                40,
+                                              )
+                                              : Colors.black,
+                                      width: 1,
                                     ),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
+                                  color:
+                                      _selectedLoaiXeIndex == index
+                                          ? const Color.fromARGB(
+                                            255,
+                                            255,
+                                            242,
+                                            225,
+                                          )
+                                          : Colors.white,
+                                  elevation: 0,
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -1528,7 +1580,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                               top: 5,
                                             ),
                                             child: Text(
-                                              lst_yeuCauDacBiet[index],
+                                              loaiXe[index].vehicleType,
                                               style: TextStyle(
                                                 color: Colors.black,
                                                 fontFamily: 'PT Sans',
@@ -1538,7 +1590,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                             ),
                                           ),
 
-                                          SizedBox(height: 15),
+                                          SizedBox(height: 10),
                                           Row(
                                             children: [
                                               Padding(
@@ -1547,7 +1599,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                                   bottom: 5,
                                                 ),
                                                 child: Text(
-                                                  '0đ',
+                                                  'Sức chứa: ${loaiXe[index].capacity.toString()}',
                                                   style: TextStyle(
                                                     color: const Color.fromARGB(
                                                       255,
@@ -1565,11 +1617,16 @@ class OrderDetailsState extends State<OrderDetails> {
                                           ),
                                         ],
                                       ),
-                                      IconButton(
-                                        onPressed: () {},
-                                        icon: Icon(
-                                          Icons.add_circle,
-                                          color: Colors.orange,
+                                      Padding(
+                                        padding: EdgeInsets.only(right: 15),
+                                        child: Text(
+                                          '${loaiXe[index].price.toString()}đ',
+                                          style: TextStyle(
+                                            color: Colors.deepOrange,
+                                            fontFamily: 'PT Sans',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -1649,7 +1706,7 @@ class OrderDetailsState extends State<OrderDetails> {
                   ),
                 ),
                 Text(
-                  "17.000₫",
+                  '${currencyFormatter.format(tongTien)}đ',
                   style: TextStyle(
                     color: Colors.red,
                     fontSize: 26,
@@ -1663,10 +1720,10 @@ class OrderDetailsState extends State<OrderDetails> {
               width: double.infinity,
               height: 60,
               child: ElevatedButton(
-                onPressed:
-                    null, // một biến boolean để kiếm soát việc disable nút đặt đơn
+                onPressed: _isEnable ? () {} : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey,
+                  backgroundColor:
+                      _isEnable ? Colors.orangeAccent : Colors.grey,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
