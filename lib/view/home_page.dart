@@ -1,9 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:do_an_cuoi_mon/main.dart';
 import 'package:do_an_cuoi_mon/view/CustomBottomNavBar.dart';
-import 'package:do_an_cuoi_mon/view/Notification.dart';
-import 'package:do_an_cuoi_mon/view/PackageTrackingScreen.dart';
-import 'package:do_an_cuoi_mon/view/delivery_info_screen.dart';
 import 'package:do_an_cuoi_mon/view/location_picker_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -16,7 +13,11 @@ class HomePage extends StatefulWidget {
 
 class _HomnePageState extends State<HomePage> {
   TextEditingController txt_diaChiNhanHang = TextEditingController();
-  int _selectedIndex = 0;
+  String diaChiNhanHang = "";
+  bool isDiaChiNhanHangSelected = false;
+  String tenNguoiGui = "";
+  String sdtNguoiGui = "";
+
   List<Map<String, String>> myList = [
     {'image': 'lib/images/logo_giaohang.png', 'title': 'Giao hàng'},
     {'image': 'lib/images/datdoan.png', 'title': 'Đặt món ăn'},
@@ -43,6 +44,26 @@ class _HomnePageState extends State<HomePage> {
       return "Chào buổi chiều!";
     } else {
       return "Chào buổi tối!";
+    }
+  }
+
+  void _chonDiaChiLayHang(bool isDcNhanHangSelected) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => LocationPickerScreen(
+              isDiaChiNhanHangSelected: isDcNhanHangSelected,
+            ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        diaChiNhanHang = result['diaChi'];
+        tenNguoiGui = result['tenNguoiGui'];
+        sdtNguoiGui = result['sdt'];
+      });
     }
   }
 
@@ -112,30 +133,93 @@ class _HomnePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(left: 10, right: 15),
+                        padding: EdgeInsets.only(left: 10),
                         child: Icon(FontAwesomeIcons.locationDot),
                       ),
                       Expanded(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: "Bạn muốn lấy hàng ở đâu?",
-                            border: InputBorder.none,
-                            isCollapsed: true,
-                            hintStyle: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => const LocationPickerScreen(),
-                              ),
-                            );
-                          },
-                        ),
+                        child:
+                            diaChiNhanHang.isNotEmpty
+                                ? TextButton(
+                                  style: TextButton.styleFrom(
+                                    alignment: Alignment.centerLeft,
+                                  ),
+                                  onPressed: () {
+                                    isDiaChiNhanHangSelected = true;
+                                    _chonDiaChiLayHang(
+                                      isDiaChiNhanHangSelected,
+                                    );
+                                  },
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        diaChiNhanHang,
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontFamily: 'PT Sans',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 19,
+                                        ),
+                                      ),
+                                      SizedBox(height: 7),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            if (tenNguoiGui.isNotEmpty)
+                                              TextSpan(
+                                                text: tenNguoiGui,
+                                                style: TextStyle(
+                                                  color: const Color.fromARGB(
+                                                    255,
+                                                    100,
+                                                    100,
+                                                    100,
+                                                  ),
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+
+                                            if (sdtNguoiGui.isNotEmpty)
+                                              TextSpan(
+                                                text: ' | ' + sdtNguoiGui,
+                                                style: TextStyle(
+                                                  color: const Color.fromARGB(
+                                                    255,
+                                                    100,
+                                                    100,
+                                                    100,
+                                                  ),
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                                : TextField(
+                                  decoration: InputDecoration(
+                                    hintText: "Bạn muốn lấy hàng ở đâu?",
+                                    border: InputBorder.none,
+                                    isCollapsed: true,
+                                    hintStyle: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  onTap: () {
+                                    isDiaChiNhanHangSelected = true;
+                                    _chonDiaChiLayHang(
+                                      isDiaChiNhanHangSelected,
+                                    );
+                                  },
+                                ),
                       ),
                     ],
                   ),
@@ -159,11 +243,15 @@ class _HomnePageState extends State<HomePage> {
                             isCollapsed: true,
                           ),
                           onTap: () {
+                            isDiaChiNhanHangSelected = false;
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder:
-                                    (context) => const LocationPickerScreen(),
+                                    (context) => LocationPickerScreen(
+                                      isDiaChiNhanHangSelected:
+                                          isDiaChiNhanHangSelected,
+                                    ),
                               ),
                             );
                           },
@@ -224,12 +312,6 @@ class _HomnePageState extends State<HomePage> {
               },
             ),
             SizedBox(height: 30),
-            TextButton(
-              onPressed: () {
-                MyApp.navigatorKey.currentState!.pushNamed('CTDonHang');
-              },
-              child: Text("Chuyển đến trang chi tiết đơn hàng"),
-            ),
           ],
         ),
       ),

@@ -11,7 +11,14 @@ import 'package:intl/intl.dart';
 
 class OrderDetails extends StatefulWidget {
   final String diaChiNguoiNhan;
-  const OrderDetails({required this.diaChiNguoiNhan, super.key});
+  final String tenNguoiNhan;
+  final String SDTNguoiNhan;
+  const OrderDetails({
+    required this.diaChiNguoiNhan,
+    required this.tenNguoiNhan,
+    required this.SDTNguoiNhan,
+    super.key,
+  });
 
   @override
   State<OrderDetails> createState() => OrderDetailsState();
@@ -660,33 +667,36 @@ class OrderDetailsState extends State<OrderDetails> {
                                       RichText(
                                         text: TextSpan(
                                           children: [
-                                            TextSpan(
-                                              text: _tenNguoiNhan + ' | ',
-                                              style: TextStyle(
-                                                color: const Color.fromARGB(
-                                                  255,
-                                                  100,
-                                                  100,
-                                                  100,
+                                            if (widget.tenNguoiNhan.isNotEmpty)
+                                              TextSpan(
+                                                text: widget.tenNguoiNhan,
+                                                style: TextStyle(
+                                                  color: const Color.fromARGB(
+                                                    255,
+                                                    100,
+                                                    100,
+                                                    100,
+                                                  ),
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 16,
                                                 ),
-                                                fontFamily: 'Roboto',
-                                                fontSize: 16,
                                               ),
-                                            ),
 
-                                            TextSpan(
-                                              text: _sdtNguoiNhan,
-                                              style: TextStyle(
-                                                color: const Color.fromARGB(
-                                                  255,
-                                                  100,
-                                                  100,
-                                                  100,
+                                            if (widget.SDTNguoiNhan.isNotEmpty)
+                                              TextSpan(
+                                                text:
+                                                    ' | ' + widget.SDTNguoiNhan,
+                                                style: TextStyle(
+                                                  color: const Color.fromARGB(
+                                                    255,
+                                                    100,
+                                                    100,
+                                                    100,
+                                                  ),
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 16,
                                                 ),
-                                                fontFamily: 'Roboto',
-                                                fontSize: 16,
                                               ),
-                                            ),
                                           ],
                                         ),
                                       ),
@@ -726,7 +736,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                     children: [
                                       SizedBox(height: 16),
                                       Text(
-                                        _diaChiGiaoHang,
+                                        widget.diaChiNguoiNhan,
                                         style: TextStyle(
                                           color: Colors.black,
                                           fontFamily: 'PT Sans',
@@ -738,33 +748,36 @@ class OrderDetailsState extends State<OrderDetails> {
                                       RichText(
                                         text: TextSpan(
                                           children: [
-                                            TextSpan(
-                                              text: _tenNguoiNhan + ' | ',
-                                              style: TextStyle(
-                                                color: const Color.fromARGB(
-                                                  255,
-                                                  100,
-                                                  100,
-                                                  100,
+                                            if (widget.tenNguoiNhan.isNotEmpty)
+                                              TextSpan(
+                                                text: widget.tenNguoiNhan,
+                                                style: TextStyle(
+                                                  color: const Color.fromARGB(
+                                                    255,
+                                                    100,
+                                                    100,
+                                                    100,
+                                                  ),
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 16,
                                                 ),
-                                                fontFamily: 'Roboto',
-                                                fontSize: 16,
                                               ),
-                                            ),
 
-                                            TextSpan(
-                                              text: _sdtNguoiNhan,
-                                              style: TextStyle(
-                                                color: const Color.fromARGB(
-                                                  255,
-                                                  100,
-                                                  100,
-                                                  100,
+                                            if (widget.SDTNguoiNhan.isNotEmpty)
+                                              TextSpan(
+                                                text:
+                                                    ' | ' + widget.SDTNguoiNhan,
+                                                style: TextStyle(
+                                                  color: const Color.fromARGB(
+                                                    255,
+                                                    100,
+                                                    100,
+                                                    100,
+                                                  ),
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: 16,
                                                 ),
-                                                fontFamily: 'Roboto',
-                                                fontSize: 16,
                                               ),
-                                            ),
                                           ],
                                         ),
                                       ),

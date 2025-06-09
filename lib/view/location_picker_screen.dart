@@ -1,16 +1,15 @@
-import 'package:do_an_cuoi_mon/model/location_dto.dart';
 import 'package:do_an_cuoi_mon/service/map_service.dart';
 import 'package:do_an_cuoi_mon/view/delivery_info_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
 import 'package:permission_handler/permission_handler.dart' as per;
 
 class LocationPickerScreen extends StatefulWidget {
-  const LocationPickerScreen({Key? key}) : super(key: key);
-
+  final bool isDiaChiNhanHangSelected;
+  const LocationPickerScreen({Key? key, required this.isDiaChiNhanHangSelected})
+    : super(key: key);
   @override
   State<LocationPickerScreen> createState() => _LocationPickerScreenState();
 }
@@ -113,7 +112,24 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                           if (location != null) {
                             setState(() {
                               currentLocation = location;
+                              print("Dia chi vau duoc chon: $currentLocation");
                             });
+
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => DeliveryInfoScreen(
+                                      isDiaChiNhanHangSelected:
+                                          widget.isDiaChiNhanHangSelected,
+                                      toaDoNguoiNhan: currentLocation,
+                                    ),
+                              ),
+                            );
+
+                            if (result != null) {
+                              Navigator.pop(context, result);
+                            }
                           }
                         }
                       },
@@ -408,11 +424,21 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         ),
         child: SafeArea(
           child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final result = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const MapScreen()),
+                MaterialPageRoute(
+                  builder:
+                      (context) => MapScreen(
+                        isDiaChiNhanHangSelected:
+                            widget.isDiaChiNhanHangSelected,
+                      ),
+                ),
               );
+
+              if (result != null) {
+                Navigator.pop(context, result);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
@@ -446,7 +472,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 }
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({Key? key}) : super(key: key);
+  final bool isDiaChiNhanHangSelected;
+  const MapScreen({Key? key, required this.isDiaChiNhanHangSelected})
+    : super(key: key);
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -627,17 +655,23 @@ class _MapScreenState extends State<MapScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (currentLocation != null) {
-                            Navigator.push(
+                            final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder:
                                     (context) => DeliveryInfoScreen(
+                                      isDiaChiNhanHangSelected:
+                                          widget.isDiaChiNhanHangSelected,
                                       toaDoNguoiNhan: currentLocation,
                                     ),
                               ),
                             );
+
+                            if (result != null) {
+                              Navigator.pop(context, result);
+                            }
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(

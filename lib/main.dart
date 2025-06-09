@@ -1,6 +1,5 @@
 import 'package:do_an_cuoi_mon/view/Notification.dart';
 import 'package:do_an_cuoi_mon/view/PackageTrackingScreen.dart';
-import 'package:do_an_cuoi_mon/view/order_details.dart';
 import 'package:do_an_cuoi_mon/view/WelcomeScreen.dart';
 import 'package:do_an_cuoi_mon/view/LoginScreen.dart';
 import 'package:do_an_cuoi_mon/view/home_page.dart';

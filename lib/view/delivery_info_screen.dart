@@ -1,24 +1,29 @@
+import 'package:do_an_cuoi_mon/view/order_details.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class DeliveryInfoScreen extends StatefulWidget {
   final LatLng? toaDoNguoiNhan;
-  const DeliveryInfoScreen({Key? key, required this.toaDoNguoiNhan})
-    : super(key: key);
+  final bool isDiaChiNhanHangSelected;
+  const DeliveryInfoScreen({
+    Key? key,
+    required this.toaDoNguoiNhan,
+    required this.isDiaChiNhanHangSelected,
+  }) : super(key: key);
 
   @override
   State<DeliveryInfoScreen> createState() => _DeliveryInfoScreenState();
 }
 
 class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
-  final TextEditingController _addressNoteController = TextEditingController();
   final TextEditingController _recipientNameController =
       TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _codController = TextEditingController();
-  final TextEditingController _packageValueController = TextEditingController();
+
   late GoogleMapController mapController;
+  String streetAddress = "";
+  String districtAddress = "";
   String diaChiNguoiNhan = "";
 
   bool _isRecipient = true;
@@ -26,19 +31,15 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
   @override
   void initState() {
     super.initState();
-    _packageValueController.text = 'đ0';
     getAddressFromLatLng(widget.toaDoNguoiNhan);
   }
 
-  @override
-  void dispose() {
-    _addressNoteController.dispose();
-    _recipientNameController.dispose();
-    _phoneController.dispose();
-    _codController.dispose();
-    _packageValueController.dispose();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _recipientNameController.dispose();
+  //   _phoneController.dispose();
+  //   super.dispose();
+  // }
 
   void _moveCameraWithOffset() {
     final LatLng center = widget.toaDoNguoiNhan!;
@@ -60,11 +61,11 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
 
     if (placemarks.isNotEmpty) {
       final place = placemarks.first;
-      final address =
-          '${place.street}, ${place.subLocality}, ${place.locality}, ${place.administrativeArea}, ${place.country}';
-
       setState(() {
-        diaChiNguoiNhan = address;
+        streetAddress = place.street!;
+        districtAddress =
+            '${place.subLocality} ${place.locality} ${place.subAdministrativeArea} ${place.administrativeArea}';
+        diaChiNguoiNhan = streetAddress + districtAddress;
       });
       print('Địa chỉ: $diaChiNguoiNhan');
     }
@@ -228,8 +229,8 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          diaChiNguoiNhan.isNotEmpty
-                                              ? diaChiNguoiNhan
+                                          streetAddress.isNotEmpty
+                                              ? streetAddress
                                               : "Lỗi khi lấy địa chỉ",
                                           style: TextStyle(
                                             fontSize: 16,
@@ -239,8 +240,11 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
                                           ),
                                         ),
                                         SizedBox(height: 4),
+
                                         Text(
-                                          'Phường 26, Quận Bình Thạnh, Hồ Chí Minh',
+                                          districtAddress.isNotEmpty
+                                              ? districtAddress
+                                              : 'Lỗi khi lấy địa chỉ',
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Colors.grey,
@@ -297,8 +301,10 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  'Thông tin người nhận',
+                                Text(
+                                  widget.isDiaChiNhanHangSelected
+                                      ? 'Thông tin người gửi'
+                                      : 'Thông tin người nhận',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -312,8 +318,10 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
                                       _isRecipient = !_isRecipient;
                                     });
                                   },
-                                  child: const Text(
-                                    'Tôi là người nhận',
+                                  child: Text(
+                                    widget.isDiaChiNhanHangSelected
+                                        ? 'Tôi là người gửi'
+                                        : 'Tôi là người nhận',
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.blue,
@@ -340,7 +348,10 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
                                   fontSize: 16,
                                 ),
                                 decoration: InputDecoration(
-                                  hintText: 'Tên người nhận',
+                                  hintText:
+                                      widget.isDiaChiNhanHangSelected
+                                          ? 'Tên người gửi'
+                                          : 'Tên người nhận',
                                   hintStyle: const TextStyle(
                                     color: Colors.grey,
                                     fontFamily: 'PTSans',
@@ -421,7 +432,25 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
               ),
               child: SafeArea(
                 child: ElevatedButton(
-                  onPressed: () {}, // Show dialog on button press
+                  onPressed: () {
+                    widget.isDiaChiNhanHangSelected
+                        ? Navigator.pop(context, {
+                          "sdt": _phoneController.text,
+                          "tenNguoiGui": _recipientNameController.text,
+                          "diaChi": streetAddress,
+                        })
+                        : Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => OrderDetails(
+                                  diaChiNguoiNhan: diaChiNguoiNhan,
+                                  tenNguoiNhan: _recipientNameController.text,
+                                  SDTNguoiNhan: _phoneController.text,
+                                ),
+                          ),
+                        );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -430,7 +459,7 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
+                  child: Text(
                     'Xác nhận',
                     style: TextStyle(
                       color: Colors.white,
@@ -447,66 +476,4 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
       ),
     );
   }
-}
-
-class MapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = Colors.grey[300]!
-          ..strokeWidth = 1;
-
-    // Draw grid lines to simulate map
-    for (int i = 0; i < size.width; i += 50) {
-      canvas.drawLine(
-        Offset(i.toDouble(), 0),
-        Offset(i.toDouble(), size.height),
-        paint,
-      );
-    }
-
-    for (int i = 0; i < size.height; i += 50) {
-      canvas.drawLine(
-        Offset(0, i.toDouble()),
-        Offset(size.width, i.toDouble()),
-        paint,
-      );
-    }
-
-    // Draw some street-like lines
-    final streetPaint =
-        Paint()
-          ..color = Colors.grey[400]!
-          ..strokeWidth = 3;
-
-    // Horizontal streets
-    canvas.drawLine(
-      Offset(0, size.height * 0.3),
-      Offset(size.width, size.height * 0.3),
-      streetPaint,
-    );
-
-    canvas.drawLine(
-      Offset(0, size.height * 0.7),
-      Offset(size.width, size.height * 0.7),
-      streetPaint,
-    );
-
-    // Vertical streets
-    canvas.drawLine(
-      Offset(size.width * 0.2, 0),
-      Offset(size.width * 0.2, size.height),
-      streetPaint,
-    );
-
-    canvas.drawLine(
-      Offset(size.width * 0.6, 0),
-      Offset(size.width * 0.6, size.height),
-      streetPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
