@@ -39,17 +39,27 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        // Lưu jwt vào SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token']);
+        final token = data['token'];
+        final user = data['user'];
+        final role = user['role'];
 
-        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+        await prefs.setString('role', role);
+        await prefs.setString('userName', user['userName']);
+
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Đăng nhập thành công')));
 
-      
-        Navigator.pushNamed(context, '/home');
+        // Điều hướng theo role
+        if (role == 'Shipper') {
+          Navigator.pushNamed(context, '/shipper');
+        } else if (role == 'Admin') {
+          Navigator.pushNamed(context, '/admin');
+        } else {
+          Navigator.pushNamed(context, '/home');
+        }
       } else {
         final error = response.body;
         ScaffoldMessenger.of(
@@ -57,10 +67,10 @@ class _LoginScreenState extends State<LoginScreen> {
         ).showSnackBar(SnackBar(content: Text('Đăng nhập thất bại: $error')));
       }
     } catch (e) {
-      Navigator.pop(context); 
+      Navigator.pop(context);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
+      ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
     }
   }
 
