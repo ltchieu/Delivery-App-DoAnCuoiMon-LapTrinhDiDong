@@ -1,29 +1,42 @@
 import 'dart:collection';
 import 'package:do_an_cuoi_mon/model/category_dto.dart';
+import 'package:do_an_cuoi_mon/model/location_dto.dart';
+import 'package:do_an_cuoi_mon/model/order_create_dto.dart';
+import 'package:do_an_cuoi_mon/model/order_item_dto.dart';
+import 'package:do_an_cuoi_mon/model/payment_dto.dart';
 import 'package:do_an_cuoi_mon/model/service_dto.dart';
 import 'package:do_an_cuoi_mon/model/size_dto.dart';
+import 'package:do_an_cuoi_mon/model/user_dto.dart';
 import 'package:do_an_cuoi_mon/model/vehicles_dto.dart';
 import 'package:do_an_cuoi_mon/service/order_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OrderDetails extends StatefulWidget {
   final String diaChiNguoiGui;
   final String tenNguoiGui;
   final String SDTNguoiGui;
+  final LatLng toaDoNguoiGui;
 
   final String diaChiNguoiNhan;
   final String tenNguoiNhan;
   final String SDTNguoiNhan;
+  final LatLng toaDoNguoiNhan;
   const OrderDetails({
     required this.diaChiNguoiNhan,
     required this.tenNguoiNhan,
     required this.SDTNguoiNhan,
+    required this.toaDoNguoiNhan,
+
     required this.tenNguoiGui,
     required this.SDTNguoiGui,
     required this.diaChiNguoiGui,
+    required this.toaDoNguoiGui,
     super.key,
   });
 
@@ -47,17 +60,21 @@ class OrderDetailsState extends State<OrderDetails> {
   List<ServiceDto> services = [];
   List<CategoryDto> loaiHang = [];
   List<VehiclesDto> loaiXe = [];
+  UserDto user = UserDto();
 
   bool _isExpand = false;
-  int _selectedIndex = 0;
-  int _selectedServiceIndex = -1;
+  int _selectedKichCoIndex = 0;
+  int _selectedServiceIndex = 0;
   int _selectedLoaiXeIndex = -1;
   late HashMap<int, bool> _lstSelectedHangHoa = HashMap();
+
   late String ngayLayHang;
   final formatter = DateFormat('HH:mm');
   final currencyFormatter = NumberFormat("#,##0", "vi_VN");
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
+  double tienXe = 0;
+  double tienDichVu = 0;
   double tongTien = 0;
   bool _isEnable = false;
 
@@ -79,12 +96,7 @@ class OrderDetailsState extends State<OrderDetails> {
   void initState() {
     super.initState();
     ngayLayHang = "";
-
-    _lstSelectedHangHoa = HashMap.fromIterable(
-      List.generate(loaiHang.length, (index) => index),
-      key: (index) => index,
-      value: (_) => false,
-    );
+    _loadUserInfo();
     _fetchServices();
     _fetchSizes();
     _fetchCategories();
@@ -103,13 +115,87 @@ class OrderDetailsState extends State<OrderDetails> {
     if (_selectedServiceIndex == -1) {
       return false;
     }
-    if (txt_khoiLuong.text.isEmpty) {
+    if (txt_khoiLuong.text.isEmpty || txt_khoiLuong.text == "") {
       return false;
     }
     if (!_lstSelectedHangHoa.containsValue(true)) {
       return false;
     }
+    if (ngayLayHang.isEmpty) {
+      return false;
+    }
     return true;
+  }
+
+  Future<void> _loadUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      user.userId = prefs.getString('userID');
+      user.userName = prefs.getString('userName');
+      user.role = prefs.getString('role');
+    });
+  }
+
+  Future<void> _saveOrder() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final orderCreateDto = OrderCreateDto(
+        customerId: user.userId!,
+        totalAmount: tienDichVu + tienXe,
+        sourceLocation: LocationDto(
+          latitude: widget.toaDoNguoiGui.latitude,
+          longitude: widget.toaDoNguoiGui.longitude,
+        ),
+        destinationLocation: LocationDto(
+          latitude: widget.toaDoNguoiNhan.latitude,
+          longitude: widget.toaDoNguoiNhan.longitude,
+        ),
+        tenNguoiNhan: widget.tenNguoiNhan,
+        sdtNguoiNhan: widget.tenNguoiNhan,
+        orderItems: [
+          OrderItemDto(
+            sizeId: sizes[_selectedKichCoIndex].sizeId,
+            categoryId: 'CAT1',
+          ),
+        ],
+        payment: PaymentDto(
+          paymentStatus: 'Chờ xử lý',
+          amount: tienDichVu + tienXe,
+        ),
+        serviceId: services[_selectedServiceIndex].serviceId,
+        estimatedDeliveryTime: DateTime.now().add(Duration(hours: 2)),
+        pickupTime: DateTime.now(),
+      );
+
+      final orderResponse = await OrderService.createOrder(orderCreateDto);
+
+      setState(() {
+        Fluttertoast.showToast(
+          msg: 'Đơn hàng ${orderResponse.orderID} được tạo thành công!',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        Fluttertoast.showToast(
+          msg: 'Có lỗi xảy ra! Đơn hàng không được tạo thành công',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> _fetchServices() async {
@@ -160,6 +246,11 @@ class OrderDetailsState extends State<OrderDetails> {
       final fetchedCategories = await OrderService.getCategories();
       setState(() {
         loaiHang = fetchedCategories;
+        _lstSelectedHangHoa = HashMap.fromIterable(
+          List.generate(loaiHang.length, (index) => index),
+          key: (index) => index,
+          value: (_) => false,
+        );
         isLoading = false;
       });
     } catch (e) {
@@ -427,6 +518,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                       formatter.format(startDateTime) +
                                       ' - ' +
                                       formatter.format(endDateTime);
+                                  _isEnable = _checkDieuKienDatDon();
                                 });
                               });
                             }
@@ -500,6 +592,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                 setState(() {
                                   setModalState(() {
                                     _selectedServiceIndex = index;
+                                    tienDichVu = services[index].price!;
                                   });
                                 });
                               },
@@ -884,7 +977,8 @@ class OrderDetailsState extends State<OrderDetails> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Siêu tốc',
+                                        services[_selectedServiceIndex].name
+                                            .toString(),
                                         style: TextStyle(
                                           color: Colors.black,
                                           fontFamily: 'PT Sans',
@@ -894,7 +988,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                       ),
 
                                       Text(
-                                        'Lấy hàng ngay, giao hỏa tốc',
+                                        '${currencyFormatter.format(services[_selectedServiceIndex].price)}đ',
                                         style: TextStyle(
                                           color: Colors.black,
                                           fontFamily: 'PT Sans',
@@ -1057,9 +1151,10 @@ class OrderDetailsState extends State<OrderDetails> {
                                       child: Padding(
                                         padding: EdgeInsets.all(4),
                                         child: Text(
-                                          _selectedIndex == -1
+                                          _selectedKichCoIndex == -1
                                               ? 'Kích cỡ'
-                                              : sizes[_selectedIndex].sizeId
+                                              : sizes[_selectedKichCoIndex]
+                                                  .sizeId
                                                   .toString(),
                                           style: _textStyleCTHangHoa,
                                         ),
@@ -1218,7 +1313,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                     Padding(
                                       padding: EdgeInsets.only(left: 6),
                                       child: Text(
-                                        sizes[_selectedIndex].description
+                                        sizes[_selectedKichCoIndex].description
                                             .toString(),
                                         style: TextStyle(
                                           color: const Color.fromARGB(
@@ -1246,7 +1341,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                       return GestureDetector(
                                         onTap: () {
                                           setState(() {
-                                            _selectedIndex = index;
+                                            _selectedKichCoIndex = index;
                                             _isEnable = _checkDieuKienDatDon();
                                           });
                                         },
@@ -1258,7 +1353,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                             shape: BoxShape.circle,
                                             border: Border.all(
                                               color:
-                                                  _selectedIndex == index
+                                                  _selectedKichCoIndex == index
                                                       ? Colors.orange
                                                       : Colors.grey,
                                               width: 1.5,
@@ -1271,7 +1366,8 @@ class OrderDetailsState extends State<OrderDetails> {
                                                 sizes[index].sizeId.toString(),
                                                 style: TextStyle(
                                                   color:
-                                                      _selectedIndex == index
+                                                      _selectedKichCoIndex ==
+                                                              index
                                                           ? Colors.orange
                                                           : Colors.black,
                                                   fontSize: 17,
@@ -1390,7 +1486,6 @@ class OrderDetailsState extends State<OrderDetails> {
                                       scrollDirection: Axis.horizontal,
                                       itemCount: loaiHang.length,
                                       itemBuilder: (context, index) {
-                                        _isEnable = _checkDieuKienDatDon();
                                         bool isSelected =
                                             _lstSelectedHangHoa[index] == true;
                                         return Padding(
@@ -1409,6 +1504,8 @@ class OrderDetailsState extends State<OrderDetails> {
                                               setState(() {
                                                 _lstSelectedHangHoa[index] =
                                                     !isSelected;
+                                                _isEnable =
+                                                    _checkDieuKienDatDon();
                                               });
                                             },
                                             child: Text(
@@ -1532,11 +1629,9 @@ class OrderDetailsState extends State<OrderDetails> {
                                 child: MaterialButton(
                                   onPressed: () {
                                     setState(() {
-                                      _isEnable = _checkDieuKienDatDon();
-                                      if (_selectedIndex == index) {
-                                        tongTien += loaiXe[index].price;
-                                      }
                                       _selectedLoaiXeIndex = index;
+                                      _isEnable = _checkDieuKienDatDon();
+                                      tienXe = loaiXe[index].price;
                                     });
                                   },
                                   shape: RoundedRectangleBorder(
@@ -1706,7 +1801,7 @@ class OrderDetailsState extends State<OrderDetails> {
                   ),
                 ),
                 Text(
-                  '${currencyFormatter.format(tongTien)}đ',
+                  '${currencyFormatter.format(tienDichVu + tienXe)}đ',
                   style: TextStyle(
                     color: Colors.red,
                     fontSize: 26,
@@ -1720,7 +1815,12 @@ class OrderDetailsState extends State<OrderDetails> {
               width: double.infinity,
               height: 60,
               child: ElevatedButton(
-                onPressed: _isEnable ? () {} : null,
+                onPressed:
+                    _isEnable
+                        ? () {
+                          _saveOrder();
+                        }
+                        : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
                       _isEnable ? Colors.orangeAccent : Colors.grey,

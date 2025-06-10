@@ -4,6 +4,7 @@ import 'package:do_an_cuoi_mon/view/CustomBottomNavBar.dart';
 import 'package:do_an_cuoi_mon/view/location_picker_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,6 +18,7 @@ class _HomnePageState extends State<HomePage> {
   String diaChiNhanHang = "";
   String tenNguoiGui = "";
   String sdtNguoiGui = "";
+  LatLng? toaDoNguoiGui;
 
   List<Map<String, String>> myList = [
     {'image': 'lib/images/logo_giaohang.png', 'title': 'Giao hàng'},
@@ -53,6 +55,7 @@ class _HomnePageState extends State<HomePage> {
       MaterialPageRoute(
         builder:
             (context) => LocationPickerScreen(
+              toaDoNguoiGui: toaDoNguoiGui!,
               tenNguoiGui: tenNguoiGui,
               SDTNguoiGui: sdtNguoiGui,
               diaChiNguoiGui: diaChiNhanHang,
@@ -66,6 +69,8 @@ class _HomnePageState extends State<HomePage> {
         diaChiNhanHang = result['diaChi'];
         tenNguoiGui = result['tenNguoiGui'];
         sdtNguoiGui = result['sdt'];
+        toaDoNguoiGui = result['toaDoNguoiGui'];
+        isDiaChiNhanHangSelected = false;
       });
     }
   }
@@ -136,7 +141,7 @@ class _HomnePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(left: 10),
+                        padding: EdgeInsets.only(left: 10, right: 10),
                         child: Icon(FontAwesomeIcons.locationDot),
                       ),
                       Expanded(
@@ -247,11 +252,23 @@ class _HomnePageState extends State<HomePage> {
                           ),
                           onTap: () {
                             isDiaChiNhanHangSelected = false;
+                            if (toaDoNguoiGui == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Bạn cần chọn địa chỉ người nhận trước',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder:
                                     (context) => LocationPickerScreen(
+                                      toaDoNguoiGui: toaDoNguoiGui!,
                                       tenNguoiGui: tenNguoiGui,
                                       SDTNguoiGui: sdtNguoiGui,
                                       diaChiNguoiGui: diaChiNhanHang,

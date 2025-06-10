@@ -8,6 +8,7 @@ class DeliveryInfoScreen extends StatefulWidget {
   final String tenNguoiGui;
   final String SDTNguoiGui;
   final LatLng? toaDoNguoiNhan;
+  final LatLng toaDoNguoiGui;
   final bool isDiaChiNhanHangSelected;
   const DeliveryInfoScreen({
     Key? key,
@@ -16,6 +17,7 @@ class DeliveryInfoScreen extends StatefulWidget {
     required this.tenNguoiGui,
     required this.SDTNguoiGui,
     required this.diaChiNguoiGui,
+    required this.toaDoNguoiGui,
   }) : super(key: key);
 
   @override
@@ -31,6 +33,7 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
   String streetAddress = "";
   String districtAddress = "";
   String diaChiNguoiNhan = "";
+  late LatLng toaDoNguoiGui;
 
   bool _isRecipient = true;
 
@@ -237,7 +240,7 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
                                         Text(
                                           streetAddress.isNotEmpty
                                               ? streetAddress
-                                              : "Lỗi khi lấy địa chỉ",
+                                              : "Loading...",
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
@@ -250,7 +253,7 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
                                         Text(
                                           districtAddress.isNotEmpty
                                               ? districtAddress
-                                              : 'Lỗi khi lấy địa chỉ',
+                                              : 'Loading...',
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Colors.grey,
@@ -444,18 +447,22 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
                           "sdt": _phoneController.text,
                           "tenNguoiGui": _recipientNameController.text,
                           "diaChi": streetAddress,
+                          "toaDoNguoiGui": widget.toaDoNguoiNhan,
                         })
                         : Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
                                 (context) => OrderDetails(
+                                  toaDoNguoiGui: widget.toaDoNguoiGui,
                                   tenNguoiGui: widget.tenNguoiGui,
                                   SDTNguoiGui: widget.SDTNguoiGui,
                                   diaChiNguoiGui: widget.diaChiNguoiGui,
+
                                   diaChiNguoiNhan: diaChiNguoiNhan,
                                   tenNguoiNhan: _recipientNameController.text,
                                   SDTNguoiNhan: _phoneController.text,
+                                  toaDoNguoiNhan: widget.toaDoNguoiNhan!,
                                 ),
                           ),
                         );

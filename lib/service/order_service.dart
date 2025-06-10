@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:do_an_cuoi_mon/model/category_dto.dart';
 import 'package:do_an_cuoi_mon/model/orde_response_dto.dart';
+import 'package:do_an_cuoi_mon/model/order_create_dto.dart';
 import 'package:do_an_cuoi_mon/model/service_dto.dart';
 import 'package:do_an_cuoi_mon/model/size_dto.dart';
 import 'package:do_an_cuoi_mon/model/vehicles_dto.dart';
@@ -8,24 +9,24 @@ import 'package:http/http.dart' as http;
 
 class OrderService {
   static const String baseUrl =
-      'http://localhost:5141/api/Orders'; // Thay bằng URL thực tế
+      'http://10.0.2.2:5141/api/Orders'; // Thay bằng URL thực tế
 
-  // // Tạo đơn hàng
-  // static Future<OrderResponseDto> createOrder(OrderCreateDto orderDto) async {
-  //   final response = await http.post(
-  //     Uri.parse('$baseUrl/saveOrder'),
-  //     headers: {'Content-Type': 'application/json; charset=UTF-8'},
-  //     body: jsonEncode(orderDto.toJson()),
-  //   );
+  // Tạo đơn hàng
+  static Future<OrderResponseDto> createOrder(OrderCreateDto orderDto) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/saveOrder'),
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      body: jsonEncode(orderDto.toJson()),
+    );
 
-  //   if (response.statusCode == 201) {
-  //     return OrderResponseDto.fromJson(jsonDecode(response.body));
-  //   } else {
-  //     throw Exception(
-  //       'Failed to create order: ${response.statusCode} - ${response.body}',
-  //     );
-  //   }
-  // }
+    if (response.statusCode == 201) {
+      return OrderResponseDto.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception(
+        'Failed to create order: ${response.statusCode} - ${response.body}',
+      );
+    }
+  }
 
   // Lấy thông tin đơn hàng theo ID
   static Future<OrderResponseDto> getOrder(String orderId) async {

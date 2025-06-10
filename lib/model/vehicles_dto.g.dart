@@ -10,7 +10,7 @@ VehiclesDto _$VehiclesDtoFromJson(Map<String, dynamic> json) => VehiclesDto(
   vehicleId: json['vehicleId'] as String,
   vehicleType: json['vehicleType'] as String,
   capacity: (json['capacity'] as num).toInt(),
-  price: (json['price'] as num).toInt(),
+  price: (json['price'] as num).toDouble(),
 );
 
 Map<String, dynamic> _$VehiclesDtoToJson(VehiclesDto instance) =>

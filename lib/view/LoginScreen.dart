@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:do_an_cuoi_mon/view/home_page.dart';
+import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,50 +17,165 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  // Thời gian timeout mặc định cho request HTTP
+  static const Duration _timeoutDuration = Duration(seconds: 10); // 10 giây
+
   Future<void> _loginUser() async {
+    // Kiểm tra rỗng ngay từ đầu để tránh gửi request không cần thiết
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng điền đầy đủ thông tin Email và Mật khẩu.'),
+          backgroundColor: Colors.red, // Màu đỏ cho lỗi
+        ),
+      );
+      return; // Dừng hàm nếu thông tin không đầy đủ
+    }
+
+    // Hiển thị loading indicator
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible:
+          false, // Không cho phép đóng dialog bằng cách chạm ra ngoài
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
-      final url = Uri.parse('http://localhost:5141/api/Auth/login');
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          "email": emailController.text,
-          "password": passwordController.text,
-        }),
-      );
+      final url = Uri.parse('http://10.0.2.2:5141/api/auth/login');
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              "email": emailController.text,
+              "password": passwordController.text,
+            }),
+          )
+          .timeout(_timeoutDuration); // Áp dụng timeout ở đây
 
-      Navigator.pop(context); // Đóng loading indicator
+      // Đóng loading indicator trước khi hiển thị SnackBar
+      Navigator.pop(context);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        // Lưu jwt vào SharedPreferences
+        final token = data['token'];
+        final user = data['user'];
+        final role = user['role'];
+
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token']);
+        await prefs.setString('token', token);
+        await prefs.setString('role', role);
+        await prefs.setString('userName', user['userName']);
+        await prefs.setString('userID', user['userID']);
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Đăng nhập thành công')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đăng nhập thành công'),
+            backgroundColor: Colors.green,
+          ),
+        );
 
-        Navigator.pushNamed(context, '/home');
+        // Điều hướng theo role
+        if (role == 'Shipper') {
+          // Đảm bảo '/shipper' đã được định nghĩa trong MaterialApp.routes
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/shipper',
+            (route) => false,
+          );
+        } else if (role == 'Admin') {
+          // Đảm bảo '/admin' đã được định nghĩa trong MaterialApp.routes
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/admin',
+            (route) => false,
+          );
+        } else {
+          // Mặc định cho Customer hoặc các role khác, điều hướng về Home
+          // Đảm bảo '/home' đã được định nghĩa trong MaterialApp.routes
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        }
       } else {
-        final error = response.body;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Đăng nhập thất bại: $error')));
+        // Xử lý các mã trạng thái HTTP khác 200
+        String errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại.';
+        try {
+          final errorData = jsonDecode(response.body);
+          if (errorData is Map && errorData.containsKey('message')) {
+            errorMessage = 'Đăng nhập thất bại: ${errorData['message']}';
+          } else if (errorData is String) {
+            errorMessage = 'Đăng nhập thất bại: $errorData';
+          } else {
+            errorMessage = 'Đăng nhập thất bại: Mã lỗi ${response.statusCode}';
+          }
+        } catch (_) {
+          // Fallback nếu response.body không phải JSON hợp lệ
+          errorMessage = 'Đăng nhập thất bại: Mã lỗi ${response.statusCode}';
+          if (response.body.isNotEmpty) {
+            errorMessage += '\nNội dung phản hồi: ${response.body}';
+          }
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
+    } on TimeoutException catch (e) {
+      // Xử lý lỗi timeout
+      Navigator.pop(context); // Đóng loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Lỗi kết nối: Thời gian chờ quá lâu. Vui lòng thử lại sau.',
+          ),
+          backgroundColor: Colors.red,
+          duration: _timeoutDuration, // Hiển thị SnackBar lâu hơn một chút
+        ),
+      );
+    } on SocketException catch (e) {
+      // Xử lý lỗi mất kết nối mạng hoặc không thể kết nối tới server
+      Navigator.pop(context); // Đóng loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Không thể kết nối tới server. Vui lòng kiểm tra kết nối mạng hoặc địa chỉ API.',
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } on FormatException catch (e) {
+      // Xử lý lỗi định dạng JSON không hợp lệ
+      Navigator.pop(context); // Đóng loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Lỗi dữ liệu: Phản hồi từ server không hợp lệ. Vui lòng liên hệ hỗ trợ.',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
     } catch (e) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
+      // Xử lý các lỗi chung khác
+      Navigator.pop(context); // Đóng loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đã xảy ra lỗi không mong muốn: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
+  }
+
+  @override
+  void dispose() {
+    // Giải phóng bộ nhớ của TextEditingController khi widget bị hủy
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -99,6 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 60),
             TextField(
               controller: emailController,
+              keyboardType: TextInputType.emailAddress, // Gợi ý bàn phím email
               decoration: const InputDecoration(
                 labelText: 'Email',
                 border: OutlineInputBorder(),
@@ -136,18 +253,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 textStyle: const TextStyle(fontSize: 16),
               ),
               onPressed: () {
-                final email = emailController.text;
-                final password = passwordController.text;
-
-                if (email.isEmpty || password.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Vui lòng điền đầy đủ thông tin'),
-                    ),
-                  );
-                  return;
-                }
-
+                // Gọi _loginUser() trực tiếp, hàm này đã xử lý kiểm tra rỗng
                 _loginUser();
               },
               child: const Text(

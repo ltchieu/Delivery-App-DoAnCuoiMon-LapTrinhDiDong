@@ -14,7 +14,7 @@ class VehiclesDto {
   final int capacity;
 
   @JsonKey(name: 'price')
-  final int price;
+  final double price;
 
   VehiclesDto({
     required this.vehicleId,

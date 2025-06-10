@@ -11,12 +11,14 @@ class LocationPickerScreen extends StatefulWidget {
   final String tenNguoiGui;
   final String SDTNguoiGui;
   final bool isDiaChiNhanHangSelected;
+  final LatLng toaDoNguoiGui;
   const LocationPickerScreen({
     Key? key,
     required this.isDiaChiNhanHangSelected,
     required this.tenNguoiGui,
     required this.SDTNguoiGui,
     required this.diaChiNguoiGui,
+    required this.toaDoNguoiGui,
   }) : super(key: key);
   @override
   State<LocationPickerScreen> createState() => _LocationPickerScreenState();
@@ -128,6 +130,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                               MaterialPageRoute(
                                 builder:
                                     (context) => DeliveryInfoScreen(
+                                      toaDoNguoiGui: widget.toaDoNguoiGui,
                                       tenNguoiGui: widget.tenNguoiGui,
                                       SDTNguoiGui: widget.SDTNguoiGui,
                                       diaChiNguoiGui: widget.diaChiNguoiGui,
@@ -441,6 +444,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 MaterialPageRoute(
                   builder:
                       (context) => MapScreen(
+                        toaDoNguoiGui: widget.toaDoNguoiGui,
                         tenNguoiGui: widget.tenNguoiGui,
                         SDTNguoiGui: widget.SDTNguoiGui,
                         diaChiNguoiGui: widget.diaChiNguoiGui,
@@ -490,12 +494,14 @@ class MapScreen extends StatefulWidget {
   final String tenNguoiGui;
   final String SDTNguoiGui;
   final bool isDiaChiNhanHangSelected;
+  final LatLng toaDoNguoiGui;
   const MapScreen({
     Key? key,
     required this.isDiaChiNhanHangSelected,
     required this.tenNguoiGui,
     required this.SDTNguoiGui,
     required this.diaChiNguoiGui,
+    required this.toaDoNguoiGui,
   }) : super(key: key);
 
   @override
@@ -687,6 +693,7 @@ class _MapScreenState extends State<MapScreen> {
                               MaterialPageRoute(
                                 builder:
                                     (context) => DeliveryInfoScreen(
+                                      toaDoNguoiGui: widget.toaDoNguoiGui,
                                       tenNguoiGui: widget.tenNguoiGui,
                                       SDTNguoiGui: widget.SDTNguoiGui,
                                       diaChiNguoiGui: widget.diaChiNguoiGui,
