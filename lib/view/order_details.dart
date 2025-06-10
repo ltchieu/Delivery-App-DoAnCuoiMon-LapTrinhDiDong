@@ -1,11 +1,17 @@
 import 'dart:collection';
+import 'package:do_an_cuoi_mon/model/category_dto.dart';
+import 'package:do_an_cuoi_mon/model/service_dto.dart';
+import 'package:do_an_cuoi_mon/model/size_dto.dart';
+import 'package:do_an_cuoi_mon/service/order_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 class OrderDetails extends StatefulWidget {
-  const OrderDetails({super.key});
+  final String diaChiNguoiNhan;
+  const OrderDetails({required this.diaChiNguoiNhan, super.key});
 
   @override
   State<OrderDetails> createState() => OrderDetailsState();
@@ -21,13 +27,11 @@ class OrderDetailsState extends State<OrderDetails> {
     fontSize: 12,
     fontFamily: 'PT Sans',
   );
-  final List<String> sizes = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
-  final List<String> loaiHang = [
-    'Thời trang',
-    'Mỹ phẩm',
-    'Thực phẩm khô / đóng gói',
-    'Khác',
-  ];
+
+  bool isLoading = true;
+  List<SizeDto> sizes = [];
+  List<ServiceDto> services = [];
+  List<CategoryDto> loaiHang = [];
 
   final List<String> lst_yeuCauDacBiet = [
     'Túi giữ nhiệt',
@@ -47,127 +51,390 @@ class OrderDetailsState extends State<OrderDetails> {
 
   bool _isExpand = false;
   int _selectedIndex = 0;
+  int _selectedServiceIndex = -1;
   late HashMap<int, bool> _lstSelectedHangHoa = HashMap();
+  late String ngayLayHang;
+  final formatter = DateFormat('HH:mm');
+  DateTime? selectedDate;
+  TimeOfDay? selectedTime;
+
+  String formatVietnameseDate(DateTime date) {
+    const weekdays = [
+      'Chủ nhật',
+      'Thứ hai',
+      'Thứ ba',
+      'Thứ tư',
+      'Thứ năm',
+      'Thứ sáu',
+      'Thứ bảy',
+    ];
+    final weekday = weekdays[date.weekday % 7];
+    return '$weekday, ${date.day}/${date.month}';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    ngayLayHang = "";
+
+    _lstSelectedHangHoa = HashMap.fromIterable(
+      List.generate(loaiHang.length, (index) => index),
+      key: (index) => index,
+      value: (_) => false,
+    );
+    _fetchServices();
+    _fetchSizes();
+    _fetchCategories();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Future<void> _fetchServices() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final fetchedServices = await OrderService.getServices();
+      setState(() {
+        services = fetchedServices;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error fetching services: $e')));
+    }
+  }
+
+  Future<void> _fetchSizes() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final fetchedSizes = await OrderService.getSizes();
+      setState(() {
+        sizes = fetchedSizes;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error fetching sizes: $e')));
+    }
+  }
+
+  Future<void> _fetchCategories() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final fetchedCategories = await OrderService.getCategories();
+      setState(() {
+        loaiHang = fetchedCategories;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error fetching categories: $e')));
+    }
+  }
 
   void _showGhiChuTaiXe() async {
-    final selected = await showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       builder: (context) {
-        return Padding(
-          padding: MediaQuery.of(context).viewInsets,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: MediaQuery.of(context).viewInsets,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: Icon(FontAwesomeIcons.xmark),
-                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(FontAwesomeIcons.xmark),
+                      ),
 
+                      Padding(
+                        padding: EdgeInsets.only(left: 80),
+                        child: Text(
+                          'Ghi chú cho tài xế',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: 'PT Sans',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
                   Padding(
-                    padding: EdgeInsets.only(left: 80),
-                    child: Text(
-                      'Ghi chú cho tài xế',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontFamily: 'PT Sans',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
+                    padding: EdgeInsets.all(8),
+                    child: SizedBox(
+                      height: 150,
+                      child: TextField(
+                        controller: txt_ghiChuTaiXe,
+                        expands: true,
+                        maxLines: null,
+                        minLines: null,
+                        textAlignVertical: TextAlignVertical.top,
+                        decoration: InputDecoration(
+                          hintText: 'Nhập lời nhắn của bạn',
+                          hintStyle: TextStyle(
+                            color: const Color.fromARGB(255, 131, 131, 131),
+                            fontSize: 16,
+                          ),
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
                   ),
+
+                  SizedBox(height: 15),
+                  Padding(
+                    padding: EdgeInsets.all(8),
+                    child: MaterialButton(
+                      onPressed: () {
+                        setState(() {
+                          setModalState(() {
+                            txt_ghiChuTaiXe.text = txt_ghiChuTaiXe.text;
+                            Navigator.pop(context);
+                          });
+                        });
+                      },
+                      color: Colors.deepOrange,
+                      minWidth: MediaQuery.of(context).size.width * 1,
+                      height: 50,
+                      child: Text(
+                        'Xác nhận',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'PT Sans',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 20),
                 ],
               ),
-              SizedBox(height: 20),
-              Padding(
-                padding: EdgeInsets.all(8),
-                child: SizedBox(
-                  height: 150,
-                  child: TextField(
-                    controller: txt_ghiChuTaiXe,
-                    expands: true,
-                    maxLines: null,
-                    minLines: null,
-                    textAlignVertical: TextAlignVertical.top,
-                    decoration: InputDecoration(
-                      hintText: 'Nhập lời nhắn của bạn',
-                      hintStyle: TextStyle(
-                        color: const Color.fromARGB(255, 131, 131, 131),
-                        fontSize: 16,
-                      ),
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 15),
-              Padding(
-                padding: EdgeInsets.all(8),
-                child: MaterialButton(
-                  onPressed: () {},
-                  color: Colors.deepOrange,
-                  minWidth: MediaQuery.of(context).size.width * 1,
-                  height: 50,
-                  child: Text(
-                    'Xác nhận',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'PT Sans',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 20),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
 
   void _showDateTimeBottomSheet() async {
-    DateTime? selectedDate;
-    TimeOfDay? selectedTime;
-
-    final formater = DateFormat('HH:mm');
-    String ngayLayHang =
+    ngayLayHang =
         'Hôm nay, ' +
-        formater.format(DateTime.now()) +
+        formatter.format(DateTime.now()) +
         ' - ' +
-        formater.format(DateTime.now().add(Duration(minutes: 15)));
+        formatter.format(DateTime.now().add(Duration(minutes: 15)));
 
-    final selected = await showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       builder: (context) {
-        return Padding(
-          padding: MediaQuery.of(context).viewInsets,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: MediaQuery.of(context).viewInsets,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: Icon(FontAwesomeIcons.xmark),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(FontAwesomeIcons.xmark),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 90),
+                        child: Text(
+                          'Hẹn giờ lấy hàng',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: 'PT Sans',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-
                   Padding(
-                    padding: EdgeInsets.only(left: 90),
+                    padding: EdgeInsets.only(left: 20),
                     child: Text(
-                      'Hẹn giờ lấy hàng',
+                      ngayLayHang,
+                      style: TextStyle(
+                        color: Colors.deepOrange,
+                        fontFamily: 'PT Sans',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      MaterialButton(
+                        onPressed: () async {
+                          final DateTime now = DateTime.now();
+                          final DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate ?? DateTime.now(),
+                            firstDate: now,
+                            lastDate: now.add(Duration(days: 7)),
+                          );
+                          if (picked != null) {
+                            //Chọn ngày
+                            setState(() {
+                              selectedDate = picked;
+                              setModalState(() {
+                                String dateAfterFomat = formatVietnameseDate(
+                                  selectedDate!,
+                                );
+                                ngayLayHang =
+                                    dateAfterFomat +
+                                    " " +
+                                    formatter.format(DateTime.now()) +
+                                    ' - ' +
+                                    formatter.format(
+                                      DateTime.now().add(Duration(minutes: 15)),
+                                    );
+                              });
+                            });
+                          }
+                        },
+                        color: Colors.orangeAccent,
+                        child: Text(
+                          'Chọn ngày',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: 'PT Sans',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+
+                      MaterialButton(
+                        onPressed: () async {
+                          if (selectedDate == null) {
+                            Fluttertoast.showToast(
+                              msg: "Bạn nên chọn ngày trước",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.CENTER,
+                              backgroundColor: Colors.red,
+                              textColor: Colors.white,
+                              fontSize: 16.0,
+                            );
+                          } else {
+                            final TimeOfDay? picked = await showTimePicker(
+                              context: context,
+                              initialTime: selectedTime ?? TimeOfDay.now(),
+                            );
+                            if (picked != null) {
+                              //Chọn giờ
+                              setState(() {
+                                selectedTime = picked;
+                                setModalState(() {
+                                  String dateAfterFomat = formatVietnameseDate(
+                                    selectedDate!,
+                                  );
+                                  final startDateTime = DateTime(
+                                    selectedDate!.year,
+                                    selectedDate!.month,
+                                    selectedDate!.day,
+                                    selectedTime!.hour,
+                                    selectedTime!.minute,
+                                  );
+                                  final endDateTime = startDateTime.add(
+                                    Duration(minutes: 15),
+                                  );
+
+                                  ngayLayHang =
+                                      dateAfterFomat +
+                                      ' ' +
+                                      formatter.format(startDateTime) +
+                                      ' - ' +
+                                      formatter.format(endDateTime);
+                                });
+                              });
+                            }
+                          }
+                        },
+                        color: Colors.orangeAccent,
+                        child: Text(
+                          'Chọn giờ',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: 'PT Sans',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 30),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showServicesBottomSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: MediaQuery.of(context).viewInsets,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.5,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: 10),
+                    Text(
+                      'Chọn dịch vụ bạn mong muốn',
                       style: TextStyle(
                         color: Colors.black,
                         fontFamily: 'PT Sans',
@@ -175,40 +442,72 @@ class OrderDetailsState extends State<OrderDetails> {
                         fontSize: 20,
                       ),
                     ),
-                  ),
-                ],
-              ),
+                    SizedBox(height: 10),
+                    const Divider(
+                      thickness: 1,
+                      height: 1,
+                      color: Color(0xFFE0E0E0),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: services.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: EdgeInsets.only(left: 10, right: 10),
+                            child: MaterialButton(
+                              onPressed: () {
+                                setState(() {
+                                  setModalState(() {
+                                    _selectedServiceIndex = index;
+                                  });
+                                });
+                              },
+                              color:
+                                  _selectedServiceIndex == index
+                                      ? const Color.fromARGB(255, 248, 232, 206)
+                                      : null,
+                              height: 50,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    services[index].name.toString(),
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontFamily: 'PT Sans',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
 
-              Text(
-                ngayLayHang,
-                style: TextStyle(
-                  color: Colors.deepOrange,
-                  fontFamily: 'PT Sans',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
+                                  Text(
+                                    services[index].price.toString() + "đ",
+                                    style: TextStyle(
+                                      color:
+                                          _selectedServiceIndex == index
+                                              ? Colors.deepOrangeAccent
+                                              : Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
-
-              SizedBox(height: 30),
-            ],
-          ),
+            );
+          },
         );
       },
     );
-  }
-
-  @override
-  void initState() {
-    _lstSelectedHangHoa = HashMap.fromIterable(
-      List.generate(loaiHang.length, (index) => index),
-      key: (index) => index,
-      value: (_) => false,
-    );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
@@ -257,7 +556,6 @@ class OrderDetailsState extends State<OrderDetails> {
                   Center(
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.9,
-                      height: 240,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         color: Colors.white,
@@ -330,6 +628,7 @@ class OrderDetailsState extends State<OrderDetails> {
                               ),
                             ],
                           ),
+
                           MaterialButton(
                             onPressed: () {},
                             height: 50,
@@ -340,19 +639,61 @@ class OrderDetailsState extends State<OrderDetails> {
                                   padding: EdgeInsets.only(right: 20, top: 5),
                                   child: Icon(FontAwesomeIcons.solidCircleStop),
                                 ),
-                                Text(
-                                  _diaChiNhanHang,
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontFamily: 'PT Sans',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 19,
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(height: 16),
+                                      Text(
+                                        _diaChiGiaoHang,
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontFamily: 'PT Sans',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 19,
+                                        ),
+                                      ),
+                                      SizedBox(height: 7),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: _tenNguoiNhan + ' | ',
+                                              style: TextStyle(
+                                                color: const Color.fromARGB(
+                                                  255,
+                                                  100,
+                                                  100,
+                                                  100,
+                                                ),
+                                                fontFamily: 'Roboto',
+                                                fontSize: 16,
+                                              ),
+                                            ),
+
+                                            TextSpan(
+                                              text: _sdtNguoiNhan,
+                                              style: TextStyle(
+                                                color: const Color.fromARGB(
+                                                  255,
+                                                  100,
+                                                  100,
+                                                  100,
+                                                ),
+                                                fontFamily: 'Roboto',
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.33,
-                                ),
+
                                 Icon(Icons.arrow_forward_ios, size: 18),
                               ],
                             ),
@@ -376,65 +717,65 @@ class OrderDetailsState extends State<OrderDetails> {
                                   ),
                                 ),
 
-                                Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(height: 16),
-                                    Text(
-                                      _diaChiGiaoHang,
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontFamily: 'PT Sans',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 19,
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(height: 16),
+                                      Text(
+                                        _diaChiGiaoHang,
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontFamily: 'PT Sans',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 19,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(height: 7),
-                                    RichText(
-                                      text: TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: _tenNguoiNhan + ' | ',
-                                            style: TextStyle(
-                                              color: const Color.fromARGB(
-                                                255,
-                                                100,
-                                                100,
-                                                100,
+                                      SizedBox(height: 7),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: _tenNguoiNhan + ' | ',
+                                              style: TextStyle(
+                                                color: const Color.fromARGB(
+                                                  255,
+                                                  100,
+                                                  100,
+                                                  100,
+                                                ),
+                                                fontFamily: 'Roboto',
+                                                fontSize: 16,
                                               ),
-                                              fontFamily: 'Roboto',
-                                              fontSize: 16,
                                             ),
-                                          ),
 
-                                          TextSpan(
-                                            text: _sdtNguoiNhan,
-                                            style: TextStyle(
-                                              color: const Color.fromARGB(
-                                                255,
-                                                100,
-                                                100,
-                                                100,
+                                            TextSpan(
+                                              text: _sdtNguoiNhan,
+                                              style: TextStyle(
+                                                color: const Color.fromARGB(
+                                                  255,
+                                                  100,
+                                                  100,
+                                                  100,
+                                                ),
+                                                fontFamily: 'Roboto',
+                                                fontSize: 16,
                                               ),
-                                              fontFamily: 'Roboto',
-                                              fontSize: 16,
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.13,
+                                    ],
+                                  ),
                                 ),
                                 Icon(Icons.arrow_forward_ios, size: 18),
                               ],
                             ),
                           ),
+
                           MaterialButton(
                             height: 70,
                             onPressed: () {},
@@ -487,7 +828,9 @@ class OrderDetailsState extends State<OrderDetails> {
                         children: [
                           MaterialButton(
                             height: 80,
-                            onPressed: () {},
+                            onPressed: () {
+                              _showServicesBottomSheet();
+                            },
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
@@ -502,30 +845,33 @@ class OrderDetailsState extends State<OrderDetails> {
                                   ),
                                 ),
 
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Siêu tốc',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontFamily: 'PT Sans',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 19,
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Siêu tốc',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontFamily: 'PT Sans',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 19,
+                                        ),
                                       ),
-                                    ),
 
-                                    Text(
-                                      'Lấy hàng ngay, giao hỏa tốc',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontFamily: 'PT Sans',
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 18,
+                                      Text(
+                                        'Lấy hàng ngay, giao hỏa tốc',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontFamily: 'PT Sans',
+                                          fontWeight: FontWeight.normal,
+                                          fontSize: 18,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
 
                                 SizedBox(
@@ -563,34 +909,35 @@ class OrderDetailsState extends State<OrderDetails> {
                                   ),
                                 ),
                                 SizedBox(width: 20),
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Thời gian lấy hàng',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontFamily: 'PT Sans',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 19,
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Thời gian lấy hàng',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontFamily: 'PT Sans',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 19,
+                                        ),
                                       ),
-                                    ),
 
-                                    Text(
-                                      'Bây giờ',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontFamily: 'PT Sans',
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 18,
+                                      Text(
+                                        ngayLayHang.isEmpty
+                                            ? 'Bây giờ'
+                                            : ngayLayHang,
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontFamily: 'PT Sans',
+                                          fontWeight: FontWeight.normal,
+                                          fontSize: 18,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.275,
+                                    ],
+                                  ),
                                 ),
                                 Icon(Icons.arrow_forward_ios, size: 18),
                               ],
@@ -684,7 +1031,8 @@ class OrderDetailsState extends State<OrderDetails> {
                                         child: Text(
                                           _selectedIndex == -1
                                               ? 'Kích cỡ'
-                                              : sizes[_selectedIndex],
+                                              : sizes[_selectedIndex].sizeId
+                                                  .toString(),
                                           style: _textStyleCTHangHoa,
                                         ),
                                       ),
@@ -733,7 +1081,7 @@ class OrderDetailsState extends State<OrderDetails> {
                                                         4,
                                                       ),
                                                       child: Text(
-                                                        'Loại sản phẩm',
+                                                        'Loại hàng hóa',
                                                         style:
                                                             _textStyleCTHangHoa,
                                                       ),
@@ -774,7 +1122,9 @@ class OrderDetailsState extends State<OrderDetails> {
                                                                     ),
                                                                 child: Text(
                                                                   loaiHang[entry
-                                                                      .key],
+                                                                          .key]
+                                                                      .categoryName
+                                                                      .toString(),
                                                                   style:
                                                                       _textStyleCTHangHoa,
                                                                 ),
@@ -840,7 +1190,8 @@ class OrderDetailsState extends State<OrderDetails> {
                                     Padding(
                                       padding: EdgeInsets.only(left: 6),
                                       child: Text(
-                                        '25x26x27',
+                                        sizes[_selectedIndex].description
+                                            .toString(),
                                         style: TextStyle(
                                           color: const Color.fromARGB(
                                             255,
@@ -885,16 +1236,19 @@ class OrderDetailsState extends State<OrderDetails> {
                                             ),
                                           ),
                                           child: Center(
-                                            child: Text(
-                                              sizes[index],
-                                              style: TextStyle(
-                                                color:
-                                                    _selectedIndex == index
-                                                        ? Colors.orange
-                                                        : Colors.black,
-                                                fontSize: 17,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'PT Sans',
+                                            child: Padding(
+                                              padding: EdgeInsets.only(left: 5),
+                                              child: Text(
+                                                sizes[index].sizeId.toString(),
+                                                style: TextStyle(
+                                                  color:
+                                                      _selectedIndex == index
+                                                          ? Colors.orange
+                                                          : Colors.black,
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'PT Sans',
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -1020,7 +1374,8 @@ class OrderDetailsState extends State<OrderDetails> {
                                               });
                                             },
                                             child: Text(
-                                              loaiHang[index],
+                                              loaiHang[index].categoryName
+                                                  .toString(),
                                               style: TextStyle(
                                                 color:
                                                     isSelected
@@ -1058,26 +1413,40 @@ class OrderDetailsState extends State<OrderDetails> {
                             child: Row(
                               children: [
                                 Padding(
-                                  padding: EdgeInsets.only(left: 5, right: 20),
+                                  padding: EdgeInsets.only(left: 5, right: 10),
                                   child: Icon(
                                     FontAwesomeIcons.fileLines,
                                     color: Colors.grey,
                                   ),
                                 ),
-                                Text(
-                                  'Ghi chú cho tài xế',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontFamily: 'PT Sans',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+
+                                Expanded(
+                                  child: Text(
+                                    txt_ghiChuTaiXe.text.isEmpty
+                                        ? 'Ghi chú cho tài xế'
+                                        : txt_ghiChuTaiXe.text,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                      color:
+                                          txt_ghiChuTaiXe.text.isEmpty
+                                              ? Colors.black
+                                              : const Color.fromARGB(
+                                                255,
+                                                100,
+                                                100,
+                                                100,
+                                              ),
+                                      fontFamily: 'PT Sans',
+                                      fontWeight:
+                                          txt_ghiChuTaiXe.text.isEmpty
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                      fontSize: 18,
+                                    ),
                                   ),
                                 ),
 
-                                SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.31,
-                                ),
                                 Icon(Icons.arrow_forward_ios, size: 18),
                               ],
                             ),
