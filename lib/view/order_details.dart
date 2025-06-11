@@ -201,6 +201,7 @@ class OrderDetailsState extends State<OrderDetails> {
           selectedTime!.hour,
           selectedTime!.minute,
         ),
+        vehicleId: loaiXe[_selectedLoaiXeIndex].vehicleId,
       );
 
       final orderResponse = await OrderService.createOrder(orderCreateDto);

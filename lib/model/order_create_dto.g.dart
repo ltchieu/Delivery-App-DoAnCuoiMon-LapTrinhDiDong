@@ -46,6 +46,7 @@ OrderCreateDto _$OrderCreateDtoFromJson(Map<String, dynamic> json) =>
           json['Payment'] == null
               ? null
               : PaymentDto.fromJson(json['Payment'] as Map<String, dynamic>),
+      vehicleId: json['VehicleId'] as String?,
     );
 
 Map<String, dynamic> _$OrderCreateDtoToJson(
@@ -64,4 +65,5 @@ Map<String, dynamic> _$OrderCreateDtoToJson(
   'SdtnguoiNhan': instance.sdtNguoiNhan,
   'OrderItems': instance.orderItems,
   'Payment': instance.payment,
+  'VehicleId': instance.vehicleId,
 };

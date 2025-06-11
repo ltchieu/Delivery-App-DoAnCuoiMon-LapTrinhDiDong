@@ -45,6 +45,25 @@ class OrderService {
     }
   }
 
+  // Lấy thông tin đơn hàng theo ID user
+  static Future<List<OrderResponseDto>> getOrderByShipperId(
+    String userId,
+  ) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/shipper/$userId'),
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = jsonDecode(response.body);
+      return jsonList.map((json) => OrderResponseDto.fromJson(json)).toList();
+    } else {
+      throw Exception(
+        'Failed to load order: ${response.statusCode} - ${response.body}',
+      );
+    }
+  }
+
   // Lấy tất cả các dịch vụ
   static Future<List<ServiceDto>> getServices() async {
     final response = await http.get(

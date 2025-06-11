@@ -49,13 +49,13 @@ class _HomnePageState extends State<HomePage> {
   String layTitleAppBarTheoBuoi() {
     DateTime time = DateTime.now();
     if (time.hour <= 10) {
-      return "Chào buổi sáng!";
+      return "Chào buổi sáng";
     } else if (time.hour <= 13) {
-      return "Chào buổi trưa!";
+      return "Chào buổi trưa";
     } else if (time.hour <= 18) {
-      return "Chào buổi chiều!";
+      return "Chào buổi chiều";
     } else {
-      return "Chào buổi tối!";
+      return "Chào buổi tối";
     }
   }
 
@@ -215,7 +215,7 @@ class _HomnePageState extends State<HomePage> {
           ),
           child: AppBar(
             title: Text(
-              layTitleAppBarTheoBuoi(),
+              '${layTitleAppBarTheoBuoi()} ${user.userName!.split(' ').last}!',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,

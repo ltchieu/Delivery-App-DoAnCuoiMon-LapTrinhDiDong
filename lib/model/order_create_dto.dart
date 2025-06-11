@@ -46,6 +46,9 @@ class OrderCreateDto {
   @JsonKey(name: 'Payment')
   final PaymentDto? payment;
 
+  @JsonKey(name: 'VehicleId')
+  final String? vehicleId;
+
   OrderCreateDto({
     required this.customerId,
     this.serviceId,
@@ -60,6 +63,7 @@ class OrderCreateDto {
     this.sdtNguoiNhan,
     required this.orderItems,
     this.payment,
+    this.vehicleId,
   });
 
   factory OrderCreateDto.fromJson(Map<String, dynamic> json) =>

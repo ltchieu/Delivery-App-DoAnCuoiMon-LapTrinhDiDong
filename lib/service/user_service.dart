@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:do_an_cuoi_mon/model/location_dto.dart';
+import 'package:do_an_cuoi_mon/model/user_dto.dart';
 import 'package:http/http.dart' as http;
 
 class UserService {
@@ -46,6 +47,27 @@ class UserService {
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
       return LocationDto.fromJson(json);
+    } else if (response.statusCode == 404) {
+      throw Exception('User or location not found.');
+    } else {
+      throw Exception('Failed to load user location: ${response.statusCode}');
+    }
+  }
+
+  static Future<UserDto> getUserInfor(String userId) async {
+    final url = Uri.parse('$baseUrl/$userId');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      return UserDto.fromJson(json);
     } else if (response.statusCode == 404) {
       throw Exception('User or location not found.');
     } else {

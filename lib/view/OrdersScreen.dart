@@ -105,6 +105,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
+    if (orders.isEmpty) {
+      return const Center(
+        child: Text(
+          'Không có đơn hàng nào',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Orders'),
