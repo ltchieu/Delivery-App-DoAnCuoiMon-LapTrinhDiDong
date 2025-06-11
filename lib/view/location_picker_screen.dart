@@ -579,8 +579,29 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           // Google Map
           GoogleMap(
-            onMapCreated: (GoogleMapController controller) {
+            onMapCreated: (GoogleMapController controller) async {
               mapController = controller;
+              Position position = await getCurrentLocation();
+              mapController.animateCamera(
+                CameraUpdate.newCameraPosition(
+                  CameraPosition(
+                    target: LatLng(position.latitude, position.longitude),
+                    zoom: 15.0,
+                  ),
+                ),
+              );
+              setState(() {
+                _maker.clear();
+                _maker.add(
+                  Marker(
+                    markerId: MarkerId("currentLocation"),
+                    icon: BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueCyan,
+                    ),
+                    position: LatLng(position.latitude, position.longitude),
+                  ),
+                );
+              });
             },
             initialCameraPosition: const CameraPosition(
               target: LatLng(10.7769, 106.7009), // Tọa độ TP.HCM

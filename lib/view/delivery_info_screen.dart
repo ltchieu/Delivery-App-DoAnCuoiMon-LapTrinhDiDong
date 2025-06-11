@@ -40,7 +40,7 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
   @override
   void initState() {
     super.initState();
-    getAddressFromLatLng(widget.toaDoNguoiNhan);
+    _getAddressFromLatLng(widget.toaDoNguoiNhan);
   }
 
   // @override
@@ -62,7 +62,7 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
     );
   }
 
-  void getAddressFromLatLng(LatLng? location) async {
+  void _getAddressFromLatLng(LatLng? location) async {
     List<Placemark> placemarks = await placemarkFromCoordinates(
       location!.latitude,
       location.longitude,

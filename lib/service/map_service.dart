@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:do_an_cuoi_mon/consts.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
@@ -44,5 +45,20 @@ class MapService {
     }
 
     return null;
+  }
+
+  Future<String> getAddressFromLatLng(LatLng? location) async {
+    List<Placemark> placemarks = await placemarkFromCoordinates(
+      location!.latitude,
+      location.longitude,
+    );
+
+    if (placemarks.isNotEmpty) {
+      final place = placemarks.first;
+      var streetAddress = place.street!;
+      print('Địa chỉ: $streetAddress');
+      return streetAddress;
+    }
+    return "";
   }
 }
