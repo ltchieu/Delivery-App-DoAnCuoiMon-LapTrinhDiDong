@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountScreen extends StatelessWidget {
-  const AccountScreen({Key? key}) : super(key: key);
+  final String userId;
+  const AccountScreen({Key? key, required this.userId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +105,6 @@ class AccountScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
                       onPressed: () async {
-                        
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.clear();
 
@@ -123,7 +123,7 @@ class AccountScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 3),
+      bottomNavigationBar: CustomBottomNavBar(currentIndex: 3, userId: userId),
     );
   }
 }

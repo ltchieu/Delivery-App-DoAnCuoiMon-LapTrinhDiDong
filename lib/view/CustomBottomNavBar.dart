@@ -5,11 +5,13 @@ import 'package:do_an_cuoi_mon/view/home_page.dart';
 import 'package:flutter/material.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
+  final String userId;
   final int currentIndex;
-
-  const CustomBottomNavBar({Key? key, required this.currentIndex})
-    : super(key: key);
-
+  const CustomBottomNavBar({
+    Key? key,
+    required this.currentIndex,
+    required this.userId,
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
@@ -45,19 +47,25 @@ class CustomBottomNavBar extends StatelessWidget {
           case 1:
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const OrdersScreen()),
+              MaterialPageRoute(
+                builder: (context) => OrdersScreen(userId: userId),
+              ),
             );
             break;
           case 2:
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const MessagesScreen()),
+              MaterialPageRoute(
+                builder: (context) => MessagesScreen(userId: userId),
+              ),
             );
             break;
           case 3:
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const AccountScreen()),
+              MaterialPageRoute(
+                builder: (context) => AccountScreen(userId: userId),
+              ),
             );
             break;
         }

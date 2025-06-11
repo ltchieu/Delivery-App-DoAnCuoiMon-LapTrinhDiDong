@@ -4,7 +4,8 @@ import 'package:do_an_cuoi_mon/view/CustomBottomNavBar.dart';
 import 'package:flutter/material.dart';
 
 class OrdersScreen extends StatefulWidget {
-  const OrdersScreen({Key? key}) : super(key: key);
+  final String userId;
+  const OrdersScreen({Key? key, required this.userId}) : super(key: key);
 
   @override
   State<OrdersScreen> createState() => _OrdersScreenState();
@@ -23,7 +24,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
     'Đã hoàn tất',
     'Đã huỷ',
   ];
-
   @override
   void initState() {
     super.initState();
@@ -36,12 +36,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
       isLoading = true;
     });
     try {
-      List<String> orderIds = ['O9af396c4', 'Oc6a1b22a'];
       List<OrderResponseDto> fetchedOrders = [];
-      for (var orderId in orderIds) {
-        final order = await OrderService.getOrder(orderId);
-        fetchedOrders.add(order);
-      }
+      fetchedOrders = await OrderService.getOrder(widget.userId);
+
       setState(() {
         orders = fetchedOrders;
         isLoading = false;
@@ -153,7 +150,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 1),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: 1,
+        userId: widget.userId,
+      ),
     );
   }
 

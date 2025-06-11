@@ -67,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString('token', token);
         await prefs.setString('role', role);
         await prefs.setString('userName', user['userName']);
-        await prefs.setString('userID', user['userID']);
+        await prefs.setString('userId', user['userId']);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -93,7 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         } else {
           // Mặc định cho Customer hoặc các role khác, điều hướng về Home
-          // Đảm bảo '/home' đã được định nghĩa trong MaterialApp.routes
           Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
         }
       } else {

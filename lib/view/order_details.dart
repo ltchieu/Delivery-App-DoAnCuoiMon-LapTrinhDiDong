@@ -9,10 +9,10 @@ import 'package:do_an_cuoi_mon/model/size_dto.dart';
 import 'package:do_an_cuoi_mon/model/user_dto.dart';
 import 'package:do_an_cuoi_mon/model/vehicles_dto.dart';
 import 'package:do_an_cuoi_mon/service/order_service.dart';
+import 'package:do_an_cuoi_mon/view/OrdersScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -130,7 +130,7 @@ class OrderDetailsState extends State<OrderDetails> {
   Future<void> _loadUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      user.userId = prefs.getString('userID');
+      user.userId = prefs.getString('userId');
       user.userName = prefs.getString('userName');
       user.role = prefs.getString('role');
     });
@@ -140,7 +140,17 @@ class OrderDetailsState extends State<OrderDetails> {
     setState(() {
       isLoading = true;
     });
-
+    if (widget.toaDoNguoiGui == widget.toaDoNguoiNhan) {
+      Fluttertoast.showToast(
+        msg: 'Tọa độ của người gửi và người nhận giống nhau',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      return;
+    }
     try {
       final orderCreateDto = OrderCreateDto(
         customerId: user.userId!,
@@ -154,20 +164,43 @@ class OrderDetailsState extends State<OrderDetails> {
           longitude: widget.toaDoNguoiNhan.longitude,
         ),
         tenNguoiNhan: widget.tenNguoiNhan,
-        sdtNguoiNhan: widget.tenNguoiNhan,
-        orderItems: [
-          OrderItemDto(
-            sizeId: sizes[_selectedKichCoIndex].sizeId,
-            categoryId: 'CAT1',
-          ),
-        ],
+        sdtNguoiNhan: widget.SDTNguoiNhan,
+        orderItems:
+            _lstSelectedHangHoa.entries
+                .where(
+                  (entry) => entry.value,
+                ) // lọc ra những loại hàng được chọn (value == true)
+                .map((entry) {
+                  final index = entry.key;
+                  final hang =
+                      loaiHang[index]; // lấy thông tin loại hàng từ danh sách loaiHang
+
+                  return OrderItemDto(
+                    categoryId: hang.categoryId,
+                    sizeId: sizes[_selectedKichCoIndex].sizeId,
+                  );
+                })
+                .toList(),
         payment: PaymentDto(
+          paymentMethod: 'COD',
           paymentStatus: 'Chờ xử lý',
           amount: tienDichVu + tienXe,
         ),
         serviceId: services[_selectedServiceIndex].serviceId,
-        estimatedDeliveryTime: DateTime.now().add(Duration(hours: 2)),
-        pickupTime: DateTime.now(),
+        estimatedDeliveryTime: DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          selectedTime!.hour,
+          selectedTime!.minute,
+        ).add(Duration(minutes: 15)),
+        pickupTime: DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          selectedTime!.hour,
+          selectedTime!.minute,
+        ),
       );
 
       final orderResponse = await OrderService.createOrder(orderCreateDto);
@@ -182,6 +215,12 @@ class OrderDetailsState extends State<OrderDetails> {
           fontSize: 16.0,
         );
         isLoading = false;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OrdersScreen(userId: user.userId!),
+          ),
+        );
       });
     } catch (e) {
       setState(() {

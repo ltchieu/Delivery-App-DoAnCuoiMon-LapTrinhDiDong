@@ -1,10 +1,12 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:do_an_cuoi_mon/main.dart';
+import 'package:do_an_cuoi_mon/model/user_dto.dart';
 import 'package:do_an_cuoi_mon/view/CustomBottomNavBar.dart';
 import 'package:do_an_cuoi_mon/view/location_picker_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,7 +20,8 @@ class _HomnePageState extends State<HomePage> {
   String diaChiNhanHang = "";
   String tenNguoiGui = "";
   String sdtNguoiGui = "";
-  LatLng? toaDoNguoiGui;
+  LatLng toaDoNguoiGui = LatLng(0, 0);
+  UserDto user = UserDto();
 
   List<Map<String, String>> myList = [
     {'image': 'lib/images/logo_giaohang.png', 'title': 'Giao hàng'},
@@ -55,7 +58,7 @@ class _HomnePageState extends State<HomePage> {
       MaterialPageRoute(
         builder:
             (context) => LocationPickerScreen(
-              toaDoNguoiGui: toaDoNguoiGui!,
+              toaDoNguoiGui: toaDoNguoiGui,
               tenNguoiGui: tenNguoiGui,
               SDTNguoiGui: sdtNguoiGui,
               diaChiNguoiGui: diaChiNhanHang,
@@ -73,6 +76,21 @@ class _HomnePageState extends State<HomePage> {
         isDiaChiNhanHangSelected = false;
       });
     }
+  }
+
+  Future<void> _loadUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      user.userId = prefs.getString('userId');
+      user.userName = prefs.getString('userName');
+      user.role = prefs.getString('role');
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
   }
 
   @override
@@ -252,11 +270,11 @@ class _HomnePageState extends State<HomePage> {
                           ),
                           onTap: () {
                             isDiaChiNhanHangSelected = false;
-                            if (toaDoNguoiGui == null) {
+                            if (toaDoNguoiGui == LatLng(0, 0)) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Bạn cần chọn địa chỉ người nhận trước',
+                                    'Bạn cần chọn địa chỉ người lấy hàng trước',
                                     style: TextStyle(color: Colors.red),
                                   ),
                                 ),
@@ -268,7 +286,7 @@ class _HomnePageState extends State<HomePage> {
                               MaterialPageRoute(
                                 builder:
                                     (context) => LocationPickerScreen(
-                                      toaDoNguoiGui: toaDoNguoiGui!,
+                                      toaDoNguoiGui: toaDoNguoiGui,
                                       tenNguoiGui: tenNguoiGui,
                                       SDTNguoiGui: sdtNguoiGui,
                                       diaChiNguoiGui: diaChiNhanHang,
@@ -338,7 +356,10 @@ class _HomnePageState extends State<HomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNavBar(currentIndex: 0),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: 0,
+        userId: user.userId!,
+      ),
     );
   }
 }

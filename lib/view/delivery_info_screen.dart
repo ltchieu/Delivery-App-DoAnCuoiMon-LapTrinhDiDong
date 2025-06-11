@@ -411,7 +411,7 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
                               ),
                             ),
 
-                            const SizedBox(height: 200), // Space for button
+                            const SizedBox(height: 200),
                           ],
                         ),
                       ),
@@ -459,7 +459,7 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
                                   SDTNguoiGui: widget.SDTNguoiGui,
                                   diaChiNguoiGui: widget.diaChiNguoiGui,
 
-                                  diaChiNguoiNhan: diaChiNguoiNhan,
+                                  diaChiNguoiNhan: streetAddress,
                                   tenNguoiNhan: _recipientNameController.text,
                                   SDTNguoiNhan: _phoneController.text,
                                   toaDoNguoiNhan: widget.toaDoNguoiNhan!,
