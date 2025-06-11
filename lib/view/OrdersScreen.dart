@@ -1,7 +1,10 @@
 import 'package:do_an_cuoi_mon/model/orde_response_dto.dart';
+import 'package:do_an_cuoi_mon/service/map_service.dart';
 import 'package:do_an_cuoi_mon/service/order_service.dart';
 import 'package:do_an_cuoi_mon/view/CustomBottomNavBar.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
 
 class OrdersScreen extends StatefulWidget {
   final String userId;
@@ -15,6 +18,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
   String selectedStatus = 'All';
   List<OrderResponseDto> orders = [];
   bool isLoading = true;
+  final _mapService = MapService();
+  Map<String, String> fromAddresses = {};
+  Map<String, String> toAddresses = {};
 
   // Add list of available statuses
   final List<String> statuses = [
@@ -27,7 +33,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchOrders();
+    _fetchOrders().then((_) {
+      _loadOrderAddresses();
+    });
   }
 
   // Phương thức tải dữ liệu từ API
@@ -53,6 +61,35 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
+  Future<void> _loadOrderAddresses() async {
+    setState(() {
+      isLoading = true;
+    });
+    for (var order in orders) {
+      final fromLatLng = LatLng(
+        order.sourceLocation!.latitude!,
+        order.sourceLocation!.longitude!,
+      );
+
+      final toLatLng = LatLng(
+        order.destinationLocation!.latitude!,
+        order.destinationLocation!.longitude!,
+      );
+
+      String fromAddress = await _mapService.getFullAddressFromLatLng(
+        fromLatLng,
+      );
+      String toAddress = await _mapService.getFullAddressFromLatLng(toLatLng);
+
+      fromAddresses[order.orderID!] = fromAddress;
+      toAddresses[order.orderID!] = toAddress;
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   // Lọc đơn hàng dựa trên selectedStatus
   List<OrderResponseDto> getFilteredOrders() {
     if (selectedStatus == 'All') {
@@ -65,6 +102,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Orders'),
@@ -160,15 +200,20 @@ class _OrdersScreenState extends State<OrdersScreen> {
   // Tạo các section dựa trên ngày tạo đơn hàng
   List<Widget> _buildOrderSections(List<OrderResponseDto> filteredOrders) {
     Map<String, List<Widget>> sections = {};
-
     for (var order in filteredOrders) {
-      String date =
-          order.createdAt?.toLocal().toString().split(' ')[0] ?? 'Unknown';
-      String month = date.split('-')[1];
-      String sectionTitle =
-          month == DateTime.now().toLocal().toString().split('-')[1]
-              ? 'Today'
-              : month;
+      final DateTime? createdAt = order.createdAt?.toLocal();
+
+      String dateTimeFormatted =
+          createdAt != null
+              ? DateFormat('yyyy-MM-dd | HH:mm').format(createdAt)
+              : 'Unknown';
+
+      String month =
+          createdAt != null ? DateFormat('MM').format(createdAt) : 'Unknown';
+
+      String currentMonth = DateFormat('MM').format(DateTime.now());
+
+      String sectionTitle = (month == currentMonth) ? 'Today' : month;
 
       if (!sections.containsKey(sectionTitle)) {
         sections[sectionTitle] = [];
@@ -176,13 +221,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
       sections[sectionTitle]!.add(
         _buildOrderItem(
           order.vehicleType ?? 'Unknown',
-          order.sourceLocation?.latitude.toString() ??
-              '' + ', ' + (order.sourceLocation?.longitude.toString() ?? ''),
-          order.destinationLocation?.latitude.toString() ??
-              '' +
-                  ', ' +
-                  (order.destinationLocation?.longitude.toString() ?? ''),
-          order.createdAt?.toLocal().toString() ?? 'Unknown',
+          fromAddresses[order.orderID] ?? "Loading...",
+          toAddresses[order.orderID] ?? "Loading...",
+          dateTimeFormatted,
           order.orderStatus ?? 'Unknown',
         ),
       );
@@ -232,7 +273,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 7.5),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -244,7 +285,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 const SizedBox(width: 8),
                 Text(
                   dateTime,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
                 ),
                 const Spacer(),
                 Text(
@@ -260,18 +304,69 @@ class _OrdersScreenState extends State<OrdersScreen> {
             Text(type),
             const SizedBox(height: 8),
             Row(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const Icon(Icons.circle_outlined, size: 12),
+                const Icon(
+                  Icons.circle_outlined,
+                  size: 20,
+                  color: Colors.deepOrangeAccent,
+                ),
                 const SizedBox(width: 8),
-                Expanded(child: Text(fromAddress)),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        fromAddress.substring(0, fromAddress.indexOf(',')),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        fromAddress.substring(fromAddress.indexOf(',') + 2),
+                        style: TextStyle(
+                          color: const Color.fromARGB(255, 131, 131, 131),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 10),
             Row(
               children: [
-                const Icon(Icons.location_on_outlined, size: 12),
+                const Icon(
+                  Icons.location_on_outlined,
+                  size: 20,
+                  color: Colors.deepOrangeAccent,
+                ),
                 const SizedBox(width: 8),
-                Expanded(child: Text(toAddress)),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        toAddress.substring(0, toAddress.indexOf(',')),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      SizedBox(height: 3),
+                      Text(
+                        toAddress.substring(toAddress.indexOf(',') + 2),
+                        style: TextStyle(
+                          color: const Color.fromARGB(255, 131, 131, 131),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ],

@@ -61,4 +61,26 @@ class MapService {
     }
     return "";
   }
+
+  Future<String> getFullAddressFromLatLng(LatLng? location) async {
+    List<Placemark> placemarks = await placemarkFromCoordinates(
+      location!.latitude,
+      location.longitude,
+    );
+
+    if (placemarks.isNotEmpty) {
+      final place = placemarks.first;
+      String street = place.street ?? '';
+      String details = [
+        place.subLocality,
+        place.locality,
+        place.subAdministrativeArea,
+        place.administrativeArea,
+        place.country,
+      ].where((e) => e != null && e.isNotEmpty).join(' ');
+
+      return '$street, $details';
+    }
+    return "";
+  }
 }
