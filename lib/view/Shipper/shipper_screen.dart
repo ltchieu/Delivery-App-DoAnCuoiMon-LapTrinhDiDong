@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:do_an_cuoi_mon/consts.dart';
 import 'package:do_an_cuoi_mon/model/orde_response_dto.dart';
 import 'package:do_an_cuoi_mon/model/user_dto.dart';
+import 'package:do_an_cuoi_mon/service/order_service.dart';
 import 'package:do_an_cuoi_mon/service/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -164,11 +165,45 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     super.dispose();
   }
 
-  void _updateStatus(String newStatus) {
+  void _updateStatus(String newStatus) async {
     setState(() {
       _currentStatus = newStatus;
     });
-    // Gửi cập nhật tới backend ở đây nếu có API
+    try {
+      bool isSuccess = await OrderService.updateOrderStatus(
+        widget.order.orderID!,
+        newStatus,
+      );
+
+      if (isSuccess) {
+        Fluttertoast.showToast(
+          msg: 'Cập nhật trạng thái đơn hàng thành công',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      } else {
+        Fluttertoast.showToast(
+          msg: 'Cập nhật trạng thái đơn hàng thất bại',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      }
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: 'Có lỗi khi gọi API $e',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
   }
 
   @override
@@ -227,10 +262,52 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   Wrap(
                     spacing: 8,
                     children: [
-                      _statusButton('Đã lấy hàng'),
-                      _statusButton('Đang giao'),
-                      _statusButton('Hoàn tất'),
-                      _statusButton('Huỷ đơn'),
+                      ElevatedButton(
+                        onPressed: () => _updateStatus('Đang giao'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                        ),
+                        child: Text(
+                          'Đã lấy hàng',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+
+                      ElevatedButton(
+                        onPressed: () => _updateStatus('Đã hoàn tất'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            1,
+                            196,
+                            33,
+                          ),
+                        ),
+                        child: Text(
+                          'Hoàn tất',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+
+                      ElevatedButton(
+                        onPressed: () => _updateStatus('Đã hoàn tất'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 196, 7, 1),
+                        ),
+                        child: Text(
+                          'Hủy đơn',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -260,14 +337,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _statusButton(String label) {
-    return ElevatedButton(
-      onPressed: () => _updateStatus(label),
-      style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-      child: Text(label, style: const TextStyle(color: Colors.white)),
     );
   }
 }

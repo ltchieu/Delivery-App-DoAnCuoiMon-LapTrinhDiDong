@@ -131,4 +131,23 @@ class OrderService {
       );
     }
   }
+
+  //Đổi trạng thái đơn hàng
+  static Future<bool> updateOrderStatus(String orderId, String status) async {
+    final url = Uri.parse('$baseUrl/$orderId/status');
+
+    final headers = {'Content-Type': 'application/json'};
+
+    final body = jsonEncode(status);
+
+    final response = await http.put(url, headers: headers, body: body);
+
+    if (response.statusCode == 200) {
+      print('Cập nhật thành công!');
+      return true;
+    } else {
+      print('Lỗi: ${response.statusCode}, ${response.body}');
+      return false;
+    }
+  }
 }

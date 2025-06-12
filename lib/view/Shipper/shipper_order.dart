@@ -120,7 +120,7 @@ class _ShipperOrderState extends State<ShipperOrder> {
             ),
             child: AppBar(
               title: Text(
-                'Chúc ${user.userName!.split(' ').last} có một ngày làm việc năng suất',
+                'Chúc ${user.userName!.split(' ').last}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -128,6 +128,10 @@ class _ShipperOrderState extends State<ShipperOrder> {
                 ),
               ),
               backgroundColor: Colors.transparent,
+              leading: IconButton(
+                onPressed: () {},
+                icon: Icon(FontAwesomeIcons.arrowLeft),
+              ),
               actions: [
                 IconButton(
                   onPressed: () {
@@ -165,7 +169,7 @@ class _ShipperOrderState extends State<ShipperOrder> {
           ),
           child: AppBar(
             title: Text(
-              'Chúc ${user.userName!.split(' ').last} có một ngày làm việc năng suất',
+              'Chào ${user.userName!.split(' ').last}',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -173,13 +177,24 @@ class _ShipperOrderState extends State<ShipperOrder> {
               ),
             ),
             backgroundColor: Colors.transparent,
+            leading: IconButton(
+              onPressed: () {
+                _fetchOrders();
+              },
+              icon: Icon(FontAwesomeIcons.rotateLeft, color: Colors.white),
+              tooltip: "Reload",
+            ),
             actions: [
               IconButton(
                 onPressed: () {
-                  _fetchOrders();
+                  Navigator.pushReplacementNamed(context, '/Welcome');
                 },
-                icon: Icon(FontAwesomeIcons.rotateLeft, color: Colors.white),
-                tooltip: "Reload",
+                icon: Icon(
+                  FontAwesomeIcons.rightFromBracket,
+                  color: Colors.white,
+                ),
+
+                tooltip: "Logout",
               ),
             ],
           ),
@@ -223,7 +238,7 @@ class _ShipperOrderState extends State<ShipperOrder> {
                         Text(
                           orders[index].orderStatus.toString(),
                           style: TextStyle(
-                            color: const Color.fromARGB(255, 116, 116, 116),
+                            color: const Color.fromARGB(255, 53, 185, 20),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
