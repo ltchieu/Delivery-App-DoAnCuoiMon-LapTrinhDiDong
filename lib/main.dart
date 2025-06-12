@@ -30,7 +30,6 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/login': (context) => const LoginScreen(),
         'Notification': (context) => NotificationScreen(),
-        'DiaChiGiaoHang': (context) => PackageTrackingScreen(),
         '/shipper': (context) => ShipperOrder(),
       },
     );

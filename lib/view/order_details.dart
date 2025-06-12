@@ -10,6 +10,7 @@ import 'package:do_an_cuoi_mon/model/user_dto.dart';
 import 'package:do_an_cuoi_mon/model/vehicles_dto.dart';
 import 'package:do_an_cuoi_mon/service/order_service.dart';
 import 'package:do_an_cuoi_mon/view/OrdersScreen.dart';
+import 'package:do_an_cuoi_mon/view/PackageTrackingScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -97,7 +98,11 @@ class OrderDetailsState extends State<OrderDetails> {
     super.initState();
     ngayLayHang = "";
     _loadUserInfo();
-    _fetchServices();
+    _fetchServices().then((_) {
+      setState(() {
+        tienDichVu = services[_selectedServiceIndex].price!;
+      });
+    });
     _fetchSizes();
     _fetchCategories();
     _fetchVehicles();
@@ -219,7 +224,7 @@ class OrderDetailsState extends State<OrderDetails> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => OrdersScreen(userId: user.userId!),
+            builder: (context) => PackageTrackingScreen(order: orderResponse),
           ),
         );
       });
