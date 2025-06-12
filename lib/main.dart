@@ -2,7 +2,7 @@ import 'package:do_an_cuoi_mon/view/Admin/AssignmentScreen.dart';
 import 'package:do_an_cuoi_mon/view/Admin/VehicleScreen.dart';
 import 'package:do_an_cuoi_mon/view/Notification.dart';
 import 'package:do_an_cuoi_mon/view/PackageTrackingScreen.dart';
-import 'package:do_an_cuoi_mon/view/order_details.dart';
+import 'package:do_an_cuoi_mon/view/Shipper/shipper_order.dart';
 import 'package:do_an_cuoi_mon/view/WelcomeScreen.dart';
 import 'package:do_an_cuoi_mon/view/LoginScreen.dart';
 import 'package:do_an_cuoi_mon/view/home_page.dart';
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),
+      home: SplashScreen(),
       routes: {
         '/Welcome': (context) => const WelcomeScreen(),
         '/home': (context) => const HomePage(),
@@ -65,6 +65,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
+    final role = prefs.getString('role');
 
     if (token != null && token.isNotEmpty) {
       try {

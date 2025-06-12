@@ -29,6 +29,8 @@ OrderResponseDto _$OrderResponseDtoFromJson(Map<String, dynamic> json) =>
           json['createdAt'] == null
               ? null
               : DateTime.parse(json['createdAt'] as String),
+      customerId: json['customerId'] as String?,
+      tenNguoiNhan: json['tenNguoiNhan'] as String?,
     );
 
 Map<String, dynamic> _$OrderResponseDtoToJson(OrderResponseDto instance) =>
@@ -41,4 +43,6 @@ Map<String, dynamic> _$OrderResponseDtoToJson(OrderResponseDto instance) =>
       'orderStatus': instance.orderStatus,
       'paymentStatus': instance.paymentStatus,
       'createdAt': instance.createdAt?.toIso8601String(),
+      'customerId': instance.customerId,
+      'tenNguoiNhan': instance.tenNguoiNhan,
     };

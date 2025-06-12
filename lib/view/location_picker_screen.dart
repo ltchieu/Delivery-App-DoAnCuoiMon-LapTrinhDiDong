@@ -1,16 +1,27 @@
-import 'package:do_an_cuoi_mon/model/location_dto.dart';
 import 'package:do_an_cuoi_mon/service/map_service.dart';
 import 'package:do_an_cuoi_mon/view/delivery_info_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
 import 'package:permission_handler/permission_handler.dart' as per;
 
 class LocationPickerScreen extends StatefulWidget {
-  const LocationPickerScreen({Key? key}) : super(key: key);
-
+  final String diaChiNguoiGui;
+  final String tenNguoiGui;
+  final String SDTNguoiGui;
+  final bool isDiaChiNhanHangSelected;
+  final LatLng toaDoNguoiGui;
+  const LocationPickerScreen({
+    Key? key,
+    required this.isDiaChiNhanHangSelected,
+    required this.tenNguoiGui,
+    required this.SDTNguoiGui,
+    required this.diaChiNguoiGui,
+    required this.toaDoNguoiGui,
+  }) : super(key: key);
   @override
   State<LocationPickerScreen> createState() => _LocationPickerScreenState();
 }
@@ -20,12 +31,84 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   final FocusNode _addressFocusNode = FocusNode();
   final MapService _mapService = MapService();
   LatLng? currentLocation = null;
+  String _currentAddressText = '';
+  bool isLoading = false;
 
   @override
   void dispose() {
     _addressController.dispose();
     _addressFocusNode.dispose();
     super.dispose();
+  }
+
+  Future<Position> getCurrentLocation() async {
+    bool serviceEnable;
+    LocationPermission permission;
+
+    serviceEnable = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnable) {
+      return Future.error("Location services are disable");
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error("Location permission denied");
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error("Location denied permanently");
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+    return position;
+  }
+
+  void _getAddressFromLatLng(LatLng? location) async {
+    List<Placemark> placemarks = await placemarkFromCoordinates(
+      location!.latitude,
+      location.longitude,
+    );
+
+    if (placemarks.isNotEmpty) {
+      final place = placemarks.first;
+      setState(() {
+        _currentAddressText =
+            '${place.subLocality} ${place.locality} ${place.subAdministrativeArea} ${place.administrativeArea}';
+      });
+      print('Địa chỉ: $_currentAddressText');
+    }
+  }
+
+  void _layDiaChiHienTaiText() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      Position position = await getCurrentLocation();
+      _getAddressFromLatLng(LatLng(position.latitude, position.longitude));
+      setState(() {
+        currentLocation = LatLng(position.latitude, position.longitude);
+        isLoading = false;
+      });
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: 'Lỗi khi lấy vị trí hiện tại $e',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _layDiaChiHienTaiText();
   }
 
   @override
@@ -113,8 +196,28 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                           if (location != null) {
                             setState(() {
                               currentLocation = location;
-                              
+                              print("Dia chi vau duoc chon: $currentLocation");
                             });
+
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => DeliveryInfoScreen(
+                                      toaDoNguoiGui: widget.toaDoNguoiGui,
+                                      tenNguoiGui: widget.tenNguoiGui,
+                                      SDTNguoiGui: widget.SDTNguoiGui,
+                                      diaChiNguoiGui: widget.diaChiNguoiGui,
+                                      isDiaChiNhanHangSelected:
+                                          widget.isDiaChiNhanHangSelected,
+                                      toaDoNguoiNhan: currentLocation,
+                                    ),
+                              ),
+                            );
+
+                            if (result != null) {
+                              Navigator.pop(context, result);
+                            }
                           }
 
                           // Navigate to MapScreen with selected location
@@ -162,7 +265,29 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     const SizedBox(height: 8),
 
                     // Current location section
-                    Container(
+                    MaterialButton(
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => DeliveryInfoScreen(
+                                  toaDoNguoiGui: widget.toaDoNguoiGui,
+                                  tenNguoiGui: widget.tenNguoiGui,
+                                  SDTNguoiGui: widget.SDTNguoiGui,
+                                  diaChiNguoiGui: widget.diaChiNguoiGui,
+                                  isDiaChiNhanHangSelected:
+                                      widget.isDiaChiNhanHangSelected,
+                                  toaDoNguoiNhan: currentLocation,
+                                ),
+                          ),
+                        );
+
+                        if (result != null) {
+                          Navigator.pop(context, result);
+                        }
+                      },
+                      elevation: 0,
                       color: Colors.white,
                       padding: const EdgeInsets.all(16),
                       child: Row(
@@ -181,7 +306,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -196,7 +321,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                                 ),
                                 SizedBox(height: 4),
                                 Text(
-                                  'Phường 15, Tân Bình, Hồ Chí Minh, Việt Nam',
+                                  _currentAddressText.isEmpty
+                                      ? 'Cập nhật vị trí hiện tại...'
+                                      : _currentAddressText,
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey,
@@ -417,11 +544,25 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         ),
         child: SafeArea(
           child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final result = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const MapScreen()),
+                MaterialPageRoute(
+                  builder:
+                      (context) => MapScreen(
+                        toaDoNguoiGui: widget.toaDoNguoiGui,
+                        tenNguoiGui: widget.tenNguoiGui,
+                        SDTNguoiGui: widget.SDTNguoiGui,
+                        diaChiNguoiGui: widget.diaChiNguoiGui,
+                        isDiaChiNhanHangSelected:
+                            widget.isDiaChiNhanHangSelected,
+                      ),
+                ),
               );
+
+              if (result != null) {
+                Navigator.pop(context, result);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
@@ -455,7 +596,19 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 }
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({Key? key}) : super(key: key);
+  final String diaChiNguoiGui;
+  final String tenNguoiGui;
+  final String SDTNguoiGui;
+  final bool isDiaChiNhanHangSelected;
+  final LatLng toaDoNguoiGui;
+  const MapScreen({
+    Key? key,
+    required this.isDiaChiNhanHangSelected,
+    required this.tenNguoiGui,
+    required this.SDTNguoiGui,
+    required this.diaChiNguoiGui,
+    required this.toaDoNguoiGui,
+  }) : super(key: key);
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -536,8 +689,29 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           // Google Map
           GoogleMap(
-            onMapCreated: (GoogleMapController controller) {
+            onMapCreated: (GoogleMapController controller) async {
               mapController = controller;
+              Position position = await getCurrentLocation();
+              mapController.animateCamera(
+                CameraUpdate.newCameraPosition(
+                  CameraPosition(
+                    target: LatLng(position.latitude, position.longitude),
+                    zoom: 15.0,
+                  ),
+                ),
+              );
+              setState(() {
+                _maker.clear();
+                _maker.add(
+                  Marker(
+                    markerId: MarkerId("currentLocation"),
+                    icon: BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueCyan,
+                    ),
+                    position: LatLng(position.latitude, position.longitude),
+                  ),
+                );
+              });
             },
             initialCameraPosition: const CameraPosition(
               target: LatLng(10.7769, 106.7009), // Tọa độ TP.HCM
@@ -545,7 +719,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
             zoomControlsEnabled: true,
             markers: _maker,
-            mapType: MapType.normal,
             myLocationButtonEnabled: false,
             onTap: _onMapTapped,
           ),
@@ -643,17 +816,27 @@ class _MapScreenState extends State<MapScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (currentLocation != null) {
-                            Navigator.push(
+                            final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder:
                                     (context) => DeliveryInfoScreen(
+                                      toaDoNguoiGui: widget.toaDoNguoiGui,
+                                      tenNguoiGui: widget.tenNguoiGui,
+                                      SDTNguoiGui: widget.SDTNguoiGui,
+                                      diaChiNguoiGui: widget.diaChiNguoiGui,
+                                      isDiaChiNhanHangSelected:
+                                          widget.isDiaChiNhanHangSelected,
                                       toaDoNguoiNhan: currentLocation,
                                     ),
                               ),
                             );
+
+                            if (result != null) {
+                              Navigator.pop(context, result);
+                            }
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
