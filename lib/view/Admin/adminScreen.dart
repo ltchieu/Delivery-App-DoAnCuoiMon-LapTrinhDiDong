@@ -60,7 +60,7 @@ class AdminScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<_AdminFeature> features = [
-      _AdminFeature("Shipper", Icons.motorcycle, '/shipper'),
+      _AdminFeature("Shipper", Icons.motorcycle, '/shipperAdmin'),
       _AdminFeature("Customer", Icons.person, '/customer'),
       _AdminFeature("Vehicle", Icons.local_shipping, '/vehicle'),
       _AdminFeature("Assignment", Icons.assignment, '/assignment'),

@@ -142,21 +142,6 @@ class OrderDetailsState extends State<OrderDetails> {
     });
   }
 
-  void _assignOrder(String orderId) async {
-    final result = await AssignService.assignOrderToNearestShipper(orderId);
-    if (result != null) {
-      if (result.success) {
-        print(
-          'Assigned to: ${result.deliveryPersonId}, distance: ${result.distance} km',
-        );
-      } else {
-        print('Assignment failed: ${result.message}');
-      }
-    } else {
-      print('Failed to connect to server.');
-    }
-  }
-
   Future<void> _saveOrder() async {
     setState(() {
       isLoading = true;

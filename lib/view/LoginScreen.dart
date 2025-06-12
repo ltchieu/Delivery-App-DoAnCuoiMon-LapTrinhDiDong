@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   static const Duration _timeoutDuration = Duration(seconds: 10); // 10 giây
 
   Future<void> _loginUser() async {
-    // Kiểm tra rỗng ngay từ đầu để tránh gửi request không cần thiết
+    
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -65,10 +65,9 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString('token', token);
         await prefs.setString('role', role);
         await prefs.setString('userName', user['userName']);
-        // Lưu thêm UserID nếu có
-        if (user.containsKey('userID')) {
-          await prefs.setString('userID', user['userID']);
-        }
+        
+       await prefs.setString('userId', user['userId']);
+        
 
 
         ScaffoldMessenger.of(context).showSnackBar(

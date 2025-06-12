@@ -154,6 +154,7 @@ class _HomnePageState extends State<HomePage> {
     });
     final prefs = await SharedPreferences.getInstance();
     setState(() {
+      
       user.userId = prefs.getString('userId');
       user.userName = prefs.getString('userName');
       user.role = prefs.getString('role');
@@ -172,6 +173,12 @@ class _HomnePageState extends State<HomePage> {
       String address = await _mapService.getAddressFromLatLng(l);
       setState(() {
         diaChiNhanHang = address;
+        isLoading = false;
+      });
+    }
+    else{
+      setState(() {
+        
         isLoading = false;
       });
     }

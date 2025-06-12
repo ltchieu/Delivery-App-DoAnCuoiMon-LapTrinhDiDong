@@ -42,7 +42,7 @@ class _AdminAccScreenState extends State<AdminAccScreen> {
               title: const Text('Đổi mật khẩu'),
               trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
               onTap: () {
-                // Thêm logic đổi mật khẩu ở đây
+                a
               },
             ),
             const Divider(),

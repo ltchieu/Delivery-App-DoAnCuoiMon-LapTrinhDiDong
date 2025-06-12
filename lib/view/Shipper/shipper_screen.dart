@@ -53,6 +53,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       isLoading = true;
     });
     try {
+      if (!mounted) return;
       UserDto u = await UserService.getUserInfor(widget.order.customerId!);
       setState(() {
         tenNguoiGui = u.userName!;
@@ -138,6 +139,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
+    if (!mounted) return;
     setState(() {
       _currentPosition = LatLng(position.latitude, position.longitude);
       _markers.add(

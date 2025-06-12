@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:do_an_cuoi_mon/consts.dart';
+import 'package:do_an_cuoi_mon/service/assign_service.dart';
 import 'package:do_an_cuoi_mon/service/order_service.dart';
 import 'package:flutter/material.dart';
 import 'package:do_an_cuoi_mon/model/orde_response_dto.dart';
@@ -97,11 +98,27 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen> {
     }
   }
 
+    void _assignOrder(String orderId) async {
+    final result = await AssignService.assignOrderToNearestShipper(orderId);
+    if (result != null) {
+      if (result.success) {
+        print(
+          'Assigned to: ${result.deliveryPersonId}, distance: ${result.distance} km',
+        );
+      } else {
+        print('Assignment failed: ${result.message}');
+      }
+    } else {
+      print('Failed to connect to server.');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _getRouteFromGoogleMaps();
     _currentStatus = widget.order.orderStatus.toString();
+    _assignOrder(widget.order.orderID!);
     _startLocationPolling();
   }
 

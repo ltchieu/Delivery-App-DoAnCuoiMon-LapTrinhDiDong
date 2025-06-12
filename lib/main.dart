@@ -12,7 +12,6 @@ import 'package:do_an_cuoi_mon/view/Admin/adminexport.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 void main() {
   runApp(const MyApp());
 }
@@ -36,13 +35,13 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/login': (context) => const LoginScreen(),
         'Notification': (context) => NotificationScreen(),
-        'DiaChiGiaoHang': (context) => PackageTrackingScreen(),
         '/admin': (context) => const AdminScreen(),
-        '/shipper': (context) => const ShippersPage(),
+        '/shipperAdmin': (context) => const ShippersPage(),
         '/customer': (context) => const CustomersPage(),
         '/vehicle': (context) => const VehicleScreen(),
         '/assignment': (context) => const AssignmentScreen(),
         '/stat': (context) =>  Dashboard(),
+        '/shipper':(context) =>  ShipperOrder(),
       },
     );
   }
@@ -63,9 +62,12 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkLoginStatus() async {
+    
     final prefs = await SharedPreferences.getInstance();
+    
     final token = prefs.getString('token');
     final role = prefs.getString('role');
+  
 
     if (token != null && token.isNotEmpty) {
       try {

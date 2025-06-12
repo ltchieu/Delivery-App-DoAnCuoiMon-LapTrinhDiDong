@@ -219,14 +219,6 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                               Navigator.pop(context, result);
                             }
                           }
-
-                          // Navigate to MapScreen with selected location
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DeliveryInfoScreen(toaDoNguoiNhan: location,)
-                            ),
-                          );
                         }
                       },
 
@@ -659,11 +651,7 @@ class _MapScreenState extends State<MapScreen> {
 
     serviceEnable = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnable) {
-      serviceEnable = await Geolocator.openLocationSettings();
-      if (!serviceEnable) {
-        return Future.error("Location services are not enabled");
-      }
-      
+      return Future.error("Location services are disable");
     }
 
     permission = await Geolocator.checkPermission();

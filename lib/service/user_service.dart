@@ -5,7 +5,7 @@ import 'package:do_an_cuoi_mon/model/user_dto.dart';
 import 'package:http/http.dart' as http;
 
 class UserService {
-  static const String baseUrl = 'http://10.0.2.2:5141/api/Users';
+  static const String baseUrl = 'http://localhost:5141/api/Users';
 
   static Future<void> saveOrUpdateUserLocation(
     String userId,

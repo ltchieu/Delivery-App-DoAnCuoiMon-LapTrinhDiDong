@@ -6,6 +6,7 @@ import 'package:do_an_cuoi_mon/view/Shipper/shipper_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ShipperOrder extends StatefulWidget {
@@ -227,11 +228,14 @@ class _ShipperOrderState extends State<ShipperOrder> {
                       children: [
                         const Icon(Icons.local_shipping_outlined),
                         const SizedBox(width: 8),
-                        Text(
-                          orders[index].createdAt.toString(),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
+                        Expanded(
+                          child: Text(
+                            DateFormat('yyyy-MM-dd | HH:mm').format(orders[index].createdAt!),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                            
                           ),
                         ),
                         const Spacer(),
