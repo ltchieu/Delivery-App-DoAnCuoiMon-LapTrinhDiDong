@@ -12,7 +12,6 @@ class _AdminAccScreenState extends State<AdminAccScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -21,7 +20,11 @@ class _AdminAccScreenState extends State<AdminAccScreen> {
             const CircleAvatar(
               radius: 50,
               backgroundColor: Colors.orange,
-              child: Icon(Icons.person, size: 50, color: Colors.white), // Avatar mặc định
+              child: Icon(
+                Icons.person,
+                size: 50,
+                color: Colors.white,
+              ), // Avatar mặc định
             ),
             const SizedBox(height: 16),
             const Text(
@@ -47,12 +50,22 @@ class _AdminAccScreenState extends State<AdminAccScreen> {
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Đăng xuất'),
               trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
-              onTap: async() {
-               final prefs = await SharedPreferences.getInstance();
-                        await prefs.clear();
+              onTap: () async {
+                try {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.clear();
 
-                        // Chuyển hướng về màn hình đăng nhập
-                        Navigator.pushReplacementNamed(context, '/Welcome');
+                  // Chuyển hướng về màn hình đăng nhập
+                  Navigator.pushReplacementNamed(context, '/Welcome');
+                } catch (e) {
+                  // Hiển thị thông báo lỗi nếu xảy ra lỗi khi đăng xuất
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Đăng xuất thất bại!'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               },
             ),
           ],

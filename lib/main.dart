@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
         '/customer': (context) => const CustomersPage(),
         '/vehicle': (context) => const VehicleScreen(),
         '/assignment': (context) => const AssignmentScreen(),
-        '/stat': (context) => const Static(),
+        '/stat': (context) =>  Dashboard(),
       },
     );
   }
@@ -78,7 +78,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
-          final role = data['role']; // Lấy thông tin role từ phản hồi API
+          final role = data['role']; 
 
           if (role == 'Admin') {
             Navigator.pushReplacementNamed(context, '/admin');

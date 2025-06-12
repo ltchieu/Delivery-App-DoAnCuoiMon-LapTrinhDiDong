@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
+import '../../model/user.dart'; 
 class CustomersPage extends StatefulWidget {
   const CustomersPage({super.key});
 
@@ -12,7 +12,8 @@ class CustomersPage extends StatefulWidget {
 class _CustomersPageState extends State<CustomersPage> {
   List customers = [];
   String searchKeyword = '';
-  final apiUrl = 'http://localhost:5141/api/users/customerslist'; // ← đổi IP máy bạn
+  final apiUrl =
+      'http://localhost:5141/api/users/customerslist'; // ← đổi IP máy bạn
   int currentPage = 1;
   int pageSize = 10;
   int totalPages = 1;
@@ -24,54 +25,103 @@ class _CustomersPageState extends State<CustomersPage> {
   }
 
   Future<void> fetchCustomers() async {
-    final uri = Uri.parse('$apiUrl?page=$currentPage&pageSize=$pageSize');
-    final response = await http.get(uri);
+    final uri = Uri.parse(apiUrl); // API trả về toàn bộ danh sách khách hàng
+    try {
+      final response = await http.get(uri);
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      setState(() {
-        customers = data['data'];
-        totalPages = data['totalPages'];
-      });
-    } else {
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          customers =
+              (data as List)
+                  .map((json) => User.fromJson(json))
+                  .toList(); // Ánh xạ dữ liệu từ JSON sang model User
+          totalPages =
+              (customers.length / pageSize).ceil(); // Tính tổng số trang
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lỗi lấy dữ liệu khách hàng!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lỗi lấy dữ liệu khách hàng!'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('Không thể kết nối đến API!'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Lọc danh sách khách hàng dựa trên từ khóa tìm kiếm
     final filtered = customers.where((c) {
-      final name = c['name']?.toLowerCase() ?? '';
+      final name = c.userName.toLowerCase();
       return name.contains(searchKeyword.toLowerCase());
     }).toList();
+
+    // Lấy dữ liệu của trang hiện tại
+    final startIndex = (currentPage - 1) * pageSize;
+    final endIndex = startIndex + pageSize;
+    final currentPageData = filtered.sublist(
+      startIndex,
+      endIndex > filtered.length ? filtered.length : endIndex,
+    );
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Danh sách khách hàng'),
-        backgroundColor: Colors.orange[800], // Đặt màu nền AppBar
+        backgroundColor: Colors.orange[800],
       ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(8),
             child: TextField(
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Tìm kiếm khách hàng',
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               onChanged: (val) => setState(() => searchKeyword = val),
             ),
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: filtered.length,
+              itemCount: currentPageData.length,
               itemBuilder: (context, index) {
-                final c = filtered[index];
-                return ListTile(
-                  title: Text(c['name']),
-                  subtitle: Text('${c['email']} - ${c['phone']}'),
+                final c = currentPageData[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.orange[800],
+                      child: Text(
+                        c.userName[0].toUpperCase(),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    title: Text(
+                      c.userName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text('${c.email} - ${c.phoneNumber ?? 'Không có số điện thoại'}'),
+                    
+                    onTap: () {
+                      // Hành động khi nhấn vào khách hàng
+                    },
+                  ),
                 );
               },
             ),
@@ -84,7 +134,6 @@ class _CustomersPageState extends State<CustomersPage> {
                 onPressed: currentPage > 1
                     ? () => setState(() {
                           currentPage--;
-                          fetchCustomers();
                         })
                     : null,
               ),
@@ -94,7 +143,6 @@ class _CustomersPageState extends State<CustomersPage> {
                 onPressed: currentPage < totalPages
                     ? () => setState(() {
                           currentPage++;
-                          fetchCustomers();
                         })
                     : null,
               ),

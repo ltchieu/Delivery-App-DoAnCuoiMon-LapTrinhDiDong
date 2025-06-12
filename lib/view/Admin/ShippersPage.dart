@@ -12,8 +12,7 @@ class ShippersPage extends StatefulWidget {
 class _ShippersPageState extends State<ShippersPage> {
   List shippers = [];
   String searchKeyword = '';
-  final apiUrl =
-      'http://localhost:5141/api/users/shipperslist'; // 🔁 Sửa IP theo máy bạn
+
   int currentPage = 1;
   int pageSize = 10;
   int totalPages = 1;
@@ -25,19 +24,31 @@ class _ShippersPageState extends State<ShippersPage> {
   }
 
   Future<void> fetchShippers() async {
-    final uri = Uri.parse('$apiUrl?page=$currentPage&pageSize=$pageSize');
-    final response = await http.get(uri);
+    final uri = Uri.parse(
+      'http://localhost:5141/api/users/shipperslist',
+    ); // API trả về toàn bộ danh sách
+    try {
+      final response = await http.get(uri);
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      setState(() {
-        shippers = data['data'];
-        totalPages = data['totalPages'];
-      });
-    } else {
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          shippers = data; // Lưu toàn bộ danh sách shipper
+          totalPages =
+              (shippers.length / pageSize).ceil(); // Tính tổng số trang
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lỗi khi tải danh sách shipper!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Lỗi khi tải danh sách shipper!'),
+          content: Text('Không thể kết nối đến API!'),
           backgroundColor: Colors.red,
         ),
       );
@@ -63,6 +74,14 @@ class _ShippersPageState extends State<ShippersPage> {
           return !isDeleted && name.contains(searchKeyword.toLowerCase());
         }).toList();
 
+    // Lấy dữ liệu của trang hiện tại
+    final startIndex = (currentPage - 1) * pageSize;
+    final endIndex = startIndex + pageSize;
+    final currentPageData = filtered.sublist(
+      startIndex,
+      endIndex > filtered.length ? filtered.length : endIndex,
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quản lý Shipper'),
@@ -82,9 +101,9 @@ class _ShippersPageState extends State<ShippersPage> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: filtered.length,
+              itemCount: currentPageData.length,
               itemBuilder: (context, index) {
-                final s = filtered[index];
+                final s = currentPageData[index];
                 return Card(
                   margin: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -139,7 +158,6 @@ class _ShippersPageState extends State<ShippersPage> {
                     currentPage > 1
                         ? () => setState(() {
                           currentPage--;
-                          fetchShippers();
                         })
                         : null,
               ),
@@ -150,7 +168,6 @@ class _ShippersPageState extends State<ShippersPage> {
                     currentPage < totalPages
                         ? () => setState(() {
                           currentPage++;
-                          fetchShippers();
                         })
                         : null,
               ),
@@ -161,7 +178,126 @@ class _ShippersPageState extends State<ShippersPage> {
     );
   }
 
-  void _showShipperDialog({required shipper}) {}
+  void _showShipperDialog({required Map<String, dynamic> shipper}) {
+    final userNameController = TextEditingController(text: shipper['userName']);
+    final phoneNumberController = TextEditingController(
+      text: shipper['phoneNumber'],
+    );
+    final emailController = TextEditingController(
+      text: shipper['email'],
+    ); // Thêm email
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Sửa thông tin Shipper'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: userNameController,
+                decoration: const InputDecoration(labelText: 'Tên Shipper'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: phoneNumberController,
+                decoration: const InputDecoration(labelText: 'Số điện thoại'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Đóng hộp thoại
+              child: const Text('Hủy'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final updatedShipper = {
+                  'userId': shipper['userId'],
+                  'userName': userNameController.text,
+                  'phoneNumber': phoneNumberController.text,
+                  'email': emailController.text, // Cập nhật email
+                  'role': shipper['role'], // Giữ nguyên vai trò
+                };
+
+                await _updateShipper(updatedShipper);
+                Navigator.pop(context); // Đóng hộp thoại sau khi cập nhật
+              },
+              child: const Text('Lưu'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _updateShipper(Map<String, dynamic> updatedShipper) async {
+    final uri = Uri.parse(
+      'http://localhost:5141/api/users/updateShipper/${updatedShipper['userId']}',
+    );
+    print(
+      jsonEncode({
+        "userId": updatedShipper['userId'],
+        "userName": updatedShipper['userName'],
+        "email": updatedShipper['email'], // Gửi email
+        "phoneNumber": updatedShipper['phoneNumber'],
+
+        "role": updatedShipper['role'], // Giữ nguyên vai trò
+      }),
+    );
+    try {
+      final response = await http.put(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "userId": updatedShipper['userId'],
+          "userName": updatedShipper['userName'],
+          "email": updatedShipper['email'], // Gửi email
+          "phoneNumber": updatedShipper['phoneNumber'],
+
+          "role": updatedShipper['role'], // Giữ nguyên vai trò
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          // Cập nhật danh sách shipper trong ứng dụng
+          final index = shippers.indexWhere(
+            (s) => s['userId'] == updatedShipper['userId'],
+          );
+          if (index != -1) {
+            shippers[index] = updatedShipper;
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cập nhật thành công!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cập nhật thất bại!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không thể kết nối đến API!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   void _confirmDelete(String userId) async {
     final uri = Uri.parse(
