@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:do_an_cuoi_mon/model/assign_order_result_dto.dart';
 import 'package:do_an_cuoi_mon/model/category_dto.dart';
 import 'package:do_an_cuoi_mon/model/orde_response_dto.dart';
 import 'package:do_an_cuoi_mon/model/order_create_dto.dart';
@@ -148,6 +149,23 @@ class OrderService {
     } else {
       print('Lỗi: ${response.statusCode}, ${response.body}');
       return false;
+    }
+  }
+
+  // Lấy thông tin đơn hàng theo ID user
+  static Future<OrderResponseDto> getOrderByOrderId(String orderId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/$orderId'),
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      return OrderResponseDto.fromJson(json);
+    } else {
+      throw Exception(
+        'Failed to load order: ${response.statusCode} - ${response.body}',
+      );
     }
   }
 }

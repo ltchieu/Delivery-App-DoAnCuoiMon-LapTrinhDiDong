@@ -2,6 +2,7 @@ import 'package:do_an_cuoi_mon/model/orde_response_dto.dart';
 import 'package:do_an_cuoi_mon/service/map_service.dart';
 import 'package:do_an_cuoi_mon/service/order_service.dart';
 import 'package:do_an_cuoi_mon/view/CustomBottomNavBar.dart';
+import 'package:do_an_cuoi_mon/view/PackageTrackingScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
@@ -228,6 +229,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       }
       sections[sectionTitle]!.add(
         _buildOrderItem(
+          order,
           order.vehicleType ?? 'Unknown',
           fromAddresses[order.orderID] ?? "Loading...",
           toAddresses[order.orderID] ?? "Loading...",
@@ -259,6 +261,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Widget _buildOrderItem(
+    OrderResponseDto order,
     String type,
     String fromAddress,
     String toAddress,
@@ -280,104 +283,115 @@ class _OrdersScreenState extends State<OrdersScreen> {
         statusColor = Colors.grey;
     }
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 7.5),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.local_shipping_outlined),
-                const SizedBox(width: 8),
-                Text(
-                  dateTime,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+    return MaterialButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PackageTrackingScreen(order: order),
+          ),
+        );
+      },
+      elevation: 0,
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 7.5),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.local_shipping_outlined),
+                  const SizedBox(width: 8),
+                  Text(
+                    dateTime,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
                   ),
-                ),
-                const Spacer(),
-                Text(
-                  status,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontWeight: FontWeight.bold,
+                  const Spacer(),
+                  Text(
+                    status,
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const Divider(),
-            Text(type),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.circle_outlined,
-                  size: 20,
-                  color: Colors.deepOrangeAccent,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        fromAddress.substring(0, fromAddress.indexOf(',')),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        fromAddress.substring(fromAddress.indexOf(',') + 2),
-                        style: TextStyle(
-                          color: const Color.fromARGB(255, 131, 131, 131),
-                        ),
-                      ),
-                    ],
+                ],
+              ),
+              const Divider(),
+              Text(type),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.circle_outlined,
+                    size: 20,
+                    color: Colors.deepOrangeAccent,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                const Icon(
-                  Icons.location_on_outlined,
-                  size: 20,
-                  color: Colors.deepOrangeAccent,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        toAddress.substring(0, toAddress.indexOf(',')),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          fromAddress.substring(0, fromAddress.indexOf(',')),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 3),
-                      Text(
-                        toAddress.substring(toAddress.indexOf(',') + 2),
-                        style: TextStyle(
-                          color: const Color.fromARGB(255, 131, 131, 131),
+                        SizedBox(height: 5),
+                        Text(
+                          fromAddress.substring(fromAddress.indexOf(',') + 2),
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 131, 131, 131),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 20,
+                    color: Colors.deepOrangeAccent,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          toAddress.substring(0, toAddress.indexOf(',')),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        SizedBox(height: 3),
+                        Text(
+                          toAddress.substring(toAddress.indexOf(',') + 2),
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 131, 131, 131),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

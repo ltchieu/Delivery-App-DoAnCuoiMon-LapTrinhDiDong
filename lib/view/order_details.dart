@@ -8,6 +8,7 @@ import 'package:do_an_cuoi_mon/model/service_dto.dart';
 import 'package:do_an_cuoi_mon/model/size_dto.dart';
 import 'package:do_an_cuoi_mon/model/user_dto.dart';
 import 'package:do_an_cuoi_mon/model/vehicles_dto.dart';
+import 'package:do_an_cuoi_mon/service/assign_service.dart';
 import 'package:do_an_cuoi_mon/service/order_service.dart';
 import 'package:do_an_cuoi_mon/view/OrdersScreen.dart';
 import 'package:do_an_cuoi_mon/view/PackageTrackingScreen.dart';
@@ -141,6 +142,21 @@ class OrderDetailsState extends State<OrderDetails> {
     });
   }
 
+  void _assignOrder(String orderId) async {
+    final result = await AssignService.assignOrderToNearestShipper(orderId);
+    if (result != null) {
+      if (result.success) {
+        print(
+          'Assigned to: ${result.deliveryPersonId}, distance: ${result.distance} km',
+        );
+      } else {
+        print('Assignment failed: ${result.message}');
+      }
+    } else {
+      print('Failed to connect to server.');
+    }
+  }
+
   Future<void> _saveOrder() async {
     setState(() {
       isLoading = true;
@@ -231,7 +247,7 @@ class OrderDetailsState extends State<OrderDetails> {
     } catch (e) {
       setState(() {
         Fluttertoast.showToast(
-          msg: 'Có lỗi xảy ra! Đơn hàng không được tạo thành công',
+          msg: 'Có lỗi xảy ra! Đơn hàng không được tạo thành công $e',
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.CENTER,
           backgroundColor: Colors.red,
