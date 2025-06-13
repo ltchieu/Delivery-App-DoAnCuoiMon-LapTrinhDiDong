@@ -33,6 +33,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   String _currentStatus = '';
   String tenNguoiGui = '';
   bool isLoading = false;
+  bool isButtonDisabled = false;
 
   @override
   void initState() {
@@ -142,21 +143,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (!mounted) return;
     setState(() {
       _currentPosition = LatLng(position.latitude, position.longitude);
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('shipper'),
-          position: _currentPosition!,
-          infoWindow: const InfoWindow(title: 'Vị trí của bạn'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueAzure,
-          ),
-        ),
-      );
+      // _markers.add(
+      //   Marker(
+      //     markerId: const MarkerId('shipper'),
+      //     position: _currentPosition!,
+      //     infoWindow: const InfoWindow(title: 'Vị trí của bạn'),
+      //     icon: BitmapDescriptor.defaultMarkerWithHue(
+      //       BitmapDescriptor.hueAzure,
+      //     ),
+      //   ),
+      // );
     });
   }
 
   void _startLocationPolling() {
     _positionTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      print('Loading new current location');
       _loadCurrentLocation();
     });
   }
@@ -265,7 +267,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     spacing: 8,
                     children: [
                       ElevatedButton(
-                        onPressed: () => _updateStatus('Đang giao'),
+                        onPressed:
+                            isButtonDisabled == false
+                                ? () {
+                                  _updateStatus('Đang giao');
+                                  setState(() {
+                                    isButtonDisabled = true;
+                                  });
+                                }
+                                : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
                         ),
@@ -279,7 +289,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
 
                       ElevatedButton(
-                        onPressed: () => _updateStatus('Đã hoàn tất'),
+                        onPressed:
+                            _currentStatus.trim().contains("chờ")
+                                ? null
+                                : () => _updateStatus('Đã hoàn tất'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color.fromARGB(
                             255,
@@ -298,7 +311,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
 
                       ElevatedButton(
-                        onPressed: () => _updateStatus('Đã hoàn tất'),
+                        onPressed: () => _updateStatus('Đã hủy'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color.fromARGB(255, 196, 7, 1),
                         ),

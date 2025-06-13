@@ -230,15 +230,15 @@ class _ShipperOrderState extends State<ShipperOrder> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            DateFormat('yyyy-MM-dd | HH:mm').format(orders[index].createdAt!),
+                            DateFormat(
+                              'yyyy-MM-dd | HH:mm',
+                            ).format(orders[index].createdAt!),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 20,
                             ),
-                            
                           ),
                         ),
-                        const Spacer(),
                         Text(
                           orders[index].orderStatus.toString(),
                           style: TextStyle(
