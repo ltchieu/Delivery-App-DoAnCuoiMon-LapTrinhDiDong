@@ -8,7 +8,7 @@ class AssignService {
   static Future<AssignOrderResultDto?> assignOrderToNearestShipper(
     String orderId,
   ) async {
-    final url = Uri.parse('http://localhost:5141/api/Assignment/assign-order');
+    final url = Uri.parse('http://10.0.2.2:5141/api/Assignment/assign-order');
 
     try {
       final response = await http.post(

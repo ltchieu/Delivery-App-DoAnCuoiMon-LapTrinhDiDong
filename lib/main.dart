@@ -1,7 +1,6 @@
 import 'package:do_an_cuoi_mon/view/Admin/AssignmentScreen.dart';
 import 'package:do_an_cuoi_mon/view/Admin/VehicleScreen.dart';
 import 'package:do_an_cuoi_mon/view/Notification.dart';
-import 'package:do_an_cuoi_mon/view/PackageTrackingScreen.dart';
 import 'package:do_an_cuoi_mon/view/Shipper/shipper_order.dart';
 import 'package:do_an_cuoi_mon/view/WelcomeScreen.dart';
 import 'package:do_an_cuoi_mon/view/LoginScreen.dart';
@@ -9,9 +8,9 @@ import 'package:do_an_cuoi_mon/view/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:do_an_cuoi_mon/view/Admin/adminexport.dart';
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
 void main() {
   runApp(const MyApp());
 }
@@ -40,8 +39,8 @@ class MyApp extends StatelessWidget {
         '/customer': (context) => const CustomersPage(),
         '/vehicle': (context) => const VehicleScreen(),
         '/assignment': (context) => const AssignmentScreen(),
-        '/stat': (context) =>  Dashboard(),
-        '/shipper':(context) =>  ShipperOrder(),
+        '/stat': (context) => Dashboard(),
+        '/shipper': (context) => ShipperOrder(),
       },
     );
   }
@@ -62,26 +61,24 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkLoginStatus() async {
-    
     final prefs = await SharedPreferences.getInstance();
-    
+
     final token = prefs.getString('token');
-    final role = prefs.getString('role');
-  
+    // final role = prefs.getString('role');
 
     if (token != null && token.isNotEmpty) {
       try {
         // Gửi token đến API để kiểm tra
         final response = await http.post(
           Uri.parse(
-            'http://localhost:5141/api/auth/verify',
+            'http://10.0.2.2:5141/api/auth/verify',
           ), // API kiểm tra token
           headers: {'Authorization': 'Bearer $token'},
         );
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
-          final role = data['role']; 
+          final role = data['role'];
 
           if (role == 'Admin') {
             Navigator.pushReplacementNamed(context, '/admin');

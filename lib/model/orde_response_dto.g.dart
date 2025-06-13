@@ -31,6 +31,7 @@ OrderResponseDto _$OrderResponseDtoFromJson(Map<String, dynamic> json) =>
               : DateTime.parse(json['createdAt'] as String),
       customerId: json['customerId'] as String?,
       tenNguoiNhan: json['tenNguoiNhan'] as String?,
+      deliveryPersonId: json['deliveryPersonId'] as String?,
     );
 
 Map<String, dynamic> _$OrderResponseDtoToJson(OrderResponseDto instance) =>
@@ -45,4 +46,5 @@ Map<String, dynamic> _$OrderResponseDtoToJson(OrderResponseDto instance) =>
       'createdAt': instance.createdAt?.toIso8601String(),
       'customerId': instance.customerId,
       'tenNguoiNhan': instance.tenNguoiNhan,
+      'deliveryPersonId': instance.deliveryPersonId,
     };

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:do_an_cuoi_mon/model/assign_order_result_dto.dart';
 import 'package:do_an_cuoi_mon/model/category_dto.dart';
 import 'package:do_an_cuoi_mon/model/orde_response_dto.dart';
 import 'package:do_an_cuoi_mon/model/order_create_dto.dart';
@@ -9,8 +8,7 @@ import 'package:do_an_cuoi_mon/model/vehicles_dto.dart';
 import 'package:http/http.dart' as http;
 
 class OrderService {
-  static const String baseUrl =
-      'http://localhost:5141/api/Orders'; // Thay bằng URL thực tế
+  static const String baseUrl = 'http://10.0.2.2:5141/api/Orders';
 
   // Tạo đơn hàng
   static Future<OrderResponseDto> createOrder(OrderCreateDto orderDto) async {

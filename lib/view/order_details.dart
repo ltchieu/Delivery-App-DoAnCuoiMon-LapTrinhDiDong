@@ -1677,6 +1677,20 @@ class OrderDetailsState extends State<OrderDetails> {
                                 padding: EdgeInsets.all(10),
                                 child: MaterialButton(
                                   onPressed: () {
+                                    if (txt_khoiLuong.text.isNotEmpty &&
+                                        int.parse(txt_khoiLuong.text) >
+                                            loaiXe[index].capacity) {
+                                      Fluttertoast.showToast(
+                                        msg:
+                                            'Khối lượng vượt quá sức chứa của xe! Vui lòng chọn loại xe khác',
+                                        toastLength: Toast.LENGTH_SHORT,
+                                        gravity: ToastGravity.CENTER,
+                                        backgroundColor: Colors.red,
+                                        textColor: Colors.white,
+                                        fontSize: 16.0,
+                                      );
+                                      return;
+                                    }
                                     setState(() {
                                       _selectedLoaiXeIndex = index;
                                       _isEnable = _checkDieuKienDatDon();

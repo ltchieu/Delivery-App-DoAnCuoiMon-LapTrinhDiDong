@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:do_an_cuoi_mon/view/Admin/AdminAccScreen.dart';
-import 'package:do_an_cuoi_mon/view/Admin/Dashboard.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -35,7 +34,7 @@ class _AdminScreenState extends State<AdminScreen> {
             child: CircleAvatar(
               backgroundImage: AssetImage('assets/admin_avatar.png'),
             ),
-          )
+          ),
         ],
       ),
       body: _pages[_selectedIndex], // Hiển thị trang tương ứng
@@ -46,7 +45,7 @@ class _AdminScreenState extends State<AdminScreen> {
         onTap: _onItemTapped, // Xử lý sự kiện chuyển trang
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Trang chủ'),
-          
+
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Tài khoản'),
         ],
       ),
@@ -94,7 +93,10 @@ class AdminScreenContent extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Text('Chức năng', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            child: Text(
+              'Chức năng',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           ),
         ),
         const SizedBox(height: 10),
@@ -104,7 +106,8 @@ class AdminScreenContent extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
-            children: features.map((f) => _buildFeatureCard(context, f)).toList(),
+            children:
+                features.map((f) => _buildFeatureCard(context, f)).toList(),
           ),
         ),
       ],

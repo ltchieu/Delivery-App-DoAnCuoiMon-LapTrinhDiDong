@@ -22,7 +22,6 @@ class _LoginScreenState extends State<LoginScreen> {
   static const Duration _timeoutDuration = Duration(seconds: 10); // 10 giây
 
   Future<void> _loginUser() async {
-    
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -36,20 +35,23 @@ class _LoginScreenState extends State<LoginScreen> {
     // Hiển thị loading indicator
     showDialog(
       context: context,
-      barrierDismissible: false, // Không cho phép đóng dialog bằng cách chạm ra ngoài
+      barrierDismissible:
+          false, // Không cho phép đóng dialog bằng cách chạm ra ngoài
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
-      final url = Uri.parse('http://localhost:5141/api/auth/login');
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          "email": emailController.text,
-          "password": passwordController.text,
-        }),
-      ).timeout(_timeoutDuration); // Áp dụng timeout ở đây
+      final url = Uri.parse('http://10.0.2.2:5141/api/auth/login');
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              "email": emailController.text,
+              "password": passwordController.text,
+            }),
+          )
+          .timeout(_timeoutDuration); // Áp dụng timeout ở đây
 
       // Đóng loading indicator trước khi hiển thị SnackBar
       Navigator.pop(context);
@@ -65,10 +67,8 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString('token', token);
         await prefs.setString('role', role);
         await prefs.setString('userName', user['userName']);
-        
-       await prefs.setString('userId', user['userId']);
-        
 
+        await prefs.setString('userId', user['userId']);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -80,10 +80,18 @@ class _LoginScreenState extends State<LoginScreen> {
         // Điều hướng theo role
         if (role == 'Shipper') {
           // Đảm bảo '/shipper' đã được định nghĩa trong MaterialApp.routes
-          Navigator.pushNamedAndRemoveUntil(context, '/shipper', (route) => false);
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/shipper',
+            (route) => false,
+          );
         } else if (role == 'Admin') {
           // Đảm bảo '/admin' đã được định nghĩa trong MaterialApp.routes
-          Navigator.pushNamedAndRemoveUntil(context, '/admin', (route) => false);
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/admin',
+            (route) => false,
+          );
         } else {
           // Mặc định cho Customer hoặc các role khác, điều hướng về Home
           // Đảm bảo '/home' đã được định nghĩa trong MaterialApp.routes
@@ -97,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (errorData is Map && errorData.containsKey('message')) {
             errorMessage = 'Đăng nhập thất bại: ${errorData['message']}';
           } else if (errorData is String) {
-             errorMessage = 'Đăng nhập thất bại: $errorData';
+            errorMessage = 'Đăng nhập thất bại: $errorData';
           } else {
             errorMessage = 'Đăng nhập thất bại: Mã lỗi ${response.statusCode}';
           }
@@ -121,7 +129,9 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pop(context); // Đóng loading indicator
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Lỗi kết nối: Thời gian chờ quá lâu. Vui lòng thử lại sau.'),
+          content: Text(
+            'Lỗi kết nối: Thời gian chờ quá lâu. Vui lòng thử lại sau.',
+          ),
           backgroundColor: Colors.red,
           duration: _timeoutDuration, // Hiển thị SnackBar lâu hơn một chút
         ),
@@ -131,7 +141,9 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pop(context); // Đóng loading indicator
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Không thể kết nối tới server. Vui lòng kiểm tra kết nối mạng hoặc địa chỉ API.'),
+          content: Text(
+            'Không thể kết nối tới server. Vui lòng kiểm tra kết nối mạng hoặc địa chỉ API.',
+          ),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 4),
         ),
@@ -141,7 +153,9 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pop(context); // Đóng loading indicator
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Lỗi dữ liệu: Phản hồi từ server không hợp lệ. Vui lòng liên hệ hỗ trợ.'),
+          content: Text(
+            'Lỗi dữ liệu: Phản hồi từ server không hợp lệ. Vui lòng liên hệ hỗ trợ.',
+          ),
           backgroundColor: Colors.red,
         ),
       );

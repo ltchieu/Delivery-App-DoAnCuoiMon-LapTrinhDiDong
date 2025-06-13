@@ -3,11 +3,14 @@ import 'dart:convert';
 
 import 'package:do_an_cuoi_mon/consts.dart';
 import 'package:do_an_cuoi_mon/service/assign_service.dart';
+import 'package:do_an_cuoi_mon/service/map_service.dart';
 import 'package:do_an_cuoi_mon/service/order_service.dart';
+import 'package:do_an_cuoi_mon/service/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:do_an_cuoi_mon/model/orde_response_dto.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
@@ -27,6 +30,20 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen> {
   String _currentStatus = '';
   Timer? _positionTimer;
   bool isLoading = false;
+  String deliveryPersonName = '';
+  String khoangCach = '';
+  String thoiGianVanChuyen = '';
+  MapService _mapService = MapService();
+
+  String formatDurationText(int durationMinutes) {
+    if (durationMinutes < 60) {
+      return "${durationMinutes} phút";
+    } else {
+      int hours = durationMinutes ~/ 60;
+      int minutes = durationMinutes % 60;
+      return minutes > 0 ? "${hours}h${minutes}'" : "${hours}h";
+    }
+  }
 
   Future<void> _getRouteFromGoogleMaps() async {
     final startLat = widget.order.sourceLocation!.latitude!;
@@ -91,25 +108,89 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen> {
         msg: 'Có lỗi khi gọi API $e',
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.CENTER,
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.red,
         textColor: Colors.white,
         fontSize: 16.0,
       );
     }
   }
 
-    void _assignOrder(String orderId) async {
+  Future<void> _assignOrder(String orderId) async {
     final result = await AssignService.assignOrderToNearestShipper(orderId);
     if (result != null) {
       if (result.success) {
-        print(
-          'Assigned to: ${result.deliveryPersonId}, distance: ${result.distance} km',
-        );
+        setState(() {
+          widget.order.deliveryPersonId = result.deliveryPersonId;
+        });
+        _getDeliveryPersonInfor();
       } else {
-        print('Assignment failed: ${result.message}');
+        Fluttertoast.showToast(
+          msg: 'Không tìm thấy người giao hàng: ${result.message}',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     } else {
       print('Failed to connect to server.');
+    }
+  }
+
+  void _getDeliveryPersonInfor() async {
+    if (widget.order.deliveryPersonId!.isEmpty) {
+      setState(() {
+        isLoading = false;
+      });
+      Fluttertoast.showToast(
+        msg: 'Đơn hàng chưa có shipper nào nhận đơn',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      return;
+    }
+    final result = await UserService.getUserInfor(
+      widget.order.deliveryPersonId!,
+    );
+    setState(() {
+      deliveryPersonName = result.userName!;
+    });
+    Fluttertoast.showToast(
+      msg: 'Người giao hàng: $deliveryPersonName đã nhận đơn hàng',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
+
+  Future<void> _getKhoangCachVaThoiGianVanChuyen() async {
+    final result = await _mapService.getDistanceAndTimeInKmAndMinutes(
+      originLat: widget.order.sourceLocation!.latitude!,
+      originLng: widget.order.sourceLocation!.longitude!,
+      destLat: widget.order.destinationLocation!.latitude!,
+      destLng: widget.order.destinationLocation!.longitude!,
+    );
+
+    if (result != null) {
+      setState(() {
+        khoangCach = result['distanceKm'].toString();
+        thoiGianVanChuyen = formatDurationText(result['durationMinutes']);
+      });
+    } else {
+      Fluttertoast.showToast(
+        msg: 'Không lấy được dữ liệu khoảng cách và thời gian',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
   }
 
@@ -119,6 +200,7 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen> {
     _getRouteFromGoogleMaps();
     _currentStatus = widget.order.orderStatus.toString();
     _assignOrder(widget.order.orderID!);
+    _getKhoangCachVaThoiGianVanChuyen();
     _startLocationPolling();
   }
 
@@ -187,32 +269,202 @@ class _PackageTrackingScreenState extends State<PackageTrackingScreen> {
           const SizedBox(height: 16),
           Expanded(
             flex: 3,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
               children: [
-                Padding(
-                  padding: EdgeInsets.only(left: 20),
-                  child: Text(
-                    'Delivery Status:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Container(
+                  color: const Color.fromARGB(164, 236, 235, 235),
+                  width: MediaQuery.of(context).size.width * 1.0,
+                  child: Column(
+                    children: [
+                      SizedBox(height: 15),
+
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(left: 10),
+                            child: Icon(
+                              FontAwesomeIcons.boxOpen,
+                              color: Colors.orangeAccent,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(left: 20),
+                            child: Text(
+                              'Trạng thái đơn hàng:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+
+                          Padding(
+                            padding: EdgeInsets.only(left: 15),
+                            child: Text(
+                              widget.order.orderStatus!,
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: 15),
+
+                      const Divider(
+                        thickness: 1,
+                        height: 1,
+                        color: Color.fromARGB(255, 218, 217, 217),
+                      ),
+                      SizedBox(height: 15),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(left: 10),
+                            child: Icon(
+                              FontAwesomeIcons.truck,
+                              color: Colors.orangeAccent,
+                            ),
+                          ),
+
+                          Padding(
+                            padding: EdgeInsets.only(left: 20),
+                            child: Text(
+                              'Người giao hàng:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+
+                          Padding(
+                            padding: EdgeInsets.only(left: 15),
+                            child: Text(
+                              deliveryPersonName.isEmpty
+                                  ? "Chưa xác định được shipper"
+                                  : deliveryPersonName,
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 15),
+                    ],
                   ),
                 ),
 
-                Padding(
-                  padding: EdgeInsets.only(left: 15),
-                  child: Text(
-                    widget.order.orderStatus!,
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                SizedBox(height: 20),
+
+                Container(
+                  color: const Color.fromARGB(164, 236, 235, 235),
+                  width: MediaQuery.of(context).size.width * 1.0,
+                  child: Column(
+                    children: [
+                      SizedBox(height: 15),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(left: 10),
+                            child: Icon(
+                              FontAwesomeIcons.route,
+                              color: Colors.lightBlueAccent,
+                            ),
+                          ),
+
+                          Padding(
+                            padding: EdgeInsets.only(left: 20),
+                            child: Text(
+                              'Khoảng cách di chuyển:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'PT San',
+                              ),
+                            ),
+                          ),
+
+                          Padding(
+                            padding: EdgeInsets.only(left: 15),
+                            child: Text(
+                              khoangCach.isEmpty
+                                  ? 'Đang tính toán...'
+                                  : '$khoangCach km',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'PT San',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 15),
+
+                      const Divider(
+                        thickness: 1,
+                        height: 1,
+                        color: Color.fromARGB(255, 218, 217, 217),
+                      ),
+                      SizedBox(height: 15),
+
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(left: 10),
+                            child: Icon(
+                              FontAwesomeIcons.clock,
+                              color: Colors.lightBlueAccent,
+                            ),
+                          ),
+
+                          Padding(
+                            padding: EdgeInsets.only(left: 20),
+                            child: Text(
+                              'Thời gian vận chuyển:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'PT San',
+                              ),
+                            ),
+                          ),
+
+                          Padding(
+                            padding: EdgeInsets.only(left: 15),
+                            child: Text(
+                              thoiGianVanChuyen.isEmpty
+                                  ? "Đang tính toán..."
+                                  : thoiGianVanChuyen,
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'PT San',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 15),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 32),
         ],
       ),
     );

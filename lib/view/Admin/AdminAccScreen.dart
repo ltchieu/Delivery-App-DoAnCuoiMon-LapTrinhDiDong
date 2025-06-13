@@ -41,9 +41,7 @@ class _AdminAccScreenState extends State<AdminAccScreen> {
               leading: const Icon(Icons.lock, color: Colors.orange),
               title: const Text('Đổi mật khẩu'),
               trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
-              onTap: () {
-                a
-              },
+              onTap: () {},
             ),
             const Divider(),
             ListTile(

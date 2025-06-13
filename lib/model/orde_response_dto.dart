@@ -17,6 +17,7 @@ class OrderResponseDto {
   final DateTime? createdAt;
   final String? customerId;
   final String? tenNguoiNhan;
+  String? deliveryPersonId;
 
   OrderResponseDto({
     this.orderID,
@@ -29,6 +30,7 @@ class OrderResponseDto {
     this.createdAt,
     this.customerId,
     this.tenNguoiNhan,
+    this.deliveryPersonId,
   });
 
   factory OrderResponseDto.fromJson(Map<String, dynamic> json) =>

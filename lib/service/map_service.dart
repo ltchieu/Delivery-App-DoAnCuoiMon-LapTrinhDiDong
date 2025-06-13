@@ -83,4 +83,45 @@ class MapService {
     }
     return "";
   }
+
+  //Lấy khoảng cách giữa điểm giao và điểm lấy hàng
+  Future<Map<String, dynamic>?> getDistanceAndTimeInKmAndMinutes({
+    required double originLat,
+    required double originLng,
+    required double destLat,
+    required double destLng,
+  }) async {
+    final url = Uri.parse(
+      'https://maps.googleapis.com/maps/api/distancematrix/json'
+      '?origins=$originLat,$originLng'
+      '&destinations=$destLat,$destLng'
+      '&mode=driving'
+      '&departure_time=now'
+      '&key=$GOOGLE_MAPS_API_KEY',
+    );
+
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final element = data['rows'][0]['elements'][0];
+
+        if (element['status'] == 'OK') {
+          final distanceMeters = element['distance']['value'];
+          final durationSeconds =
+              element['duration_in_traffic']?['value'] ??
+              element['duration']['value'];
+
+          final distanceKm = distanceMeters / 1000.0;
+          final durationMinutes = (durationSeconds / 60).round();
+
+          return {'distanceKm': distanceKm, 'durationMinutes': durationMinutes};
+        }
+      }
+    } catch (e) {
+      print('Lỗi khi gọi Google API: $e');
+    }
+
+    return null;
+  }
 }

@@ -208,6 +208,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   // Tạo các section dựa trên ngày tạo đơn hàng
   List<Widget> _buildOrderSections(List<OrderResponseDto> filteredOrders) {
+    filteredOrders.sort((a, b) {
+      final aTime = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bTime = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bTime.compareTo(aTime); // sắp xếp giảm dần
+    });
     Map<String, List<Widget>> sections = {};
     for (var order in filteredOrders) {
       final DateTime? createdAt = order.createdAt?.toLocal();

@@ -24,7 +24,9 @@ class _VehicleScreenState extends State<VehicleScreen> {
   }
 
   Future<void> fetchVehicles() async {
-    final uri = Uri.parse('http://localhost:5141/api/vehicles'); // API lấy danh sách xe
+    final uri = Uri.parse(
+      'http://localhost:5141/api/vehicles',
+    ); // API lấy danh sách xe
     try {
       final response = await http.get(uri);
 
@@ -32,7 +34,8 @@ class _VehicleScreenState extends State<VehicleScreen> {
         final data = json.decode(response.body);
         setState(() {
           vehicles = data; // Lưu toàn bộ danh sách xe
-          totalPages = (vehicles.length / pageSize).ceil(); // Tính tổng số trang
+          totalPages =
+              (vehicles.length / pageSize).ceil(); // Tính tổng số trang
         });
       } else {
         _showMessage('Lỗi khi tải danh sách xe!', Colors.red);
@@ -54,12 +57,21 @@ class _VehicleScreenState extends State<VehicleScreen> {
   void _showVehicleDialog({Map<String, dynamic>? vehicle}) {
     final isEditing = vehicle != null;
 
-    final vehicleTypeController = TextEditingController(text: vehicle?['vehicleType']);
-    final licensePlateController = TextEditingController(text: vehicle?['licensePlate']);
-    final capacityController = TextEditingController(text: vehicle?['capacity']?.toString());
-    final priceController = TextEditingController(text: vehicle?['price']?.toString());
+    final vehicleTypeController = TextEditingController(
+      text: vehicle?['vehicleType'],
+    );
+    final licensePlateController = TextEditingController(
+      text: vehicle?['licensePlate'],
+    );
+    final capacityController = TextEditingController(
+      text: vehicle?['capacity']?.toString(),
+    );
+    final priceController = TextEditingController(
+      text: vehicle?['price']?.toString(),
+    );
 
-    String selectedVehicleType = vehicle?['vehicleType'] ?? 'Xe bán tải'; // Giá trị mặc định
+    String selectedVehicleType =
+        vehicle?['vehicleType'] ?? 'Xe bán tải'; // Giá trị mặc định
 
     showDialog(
       context: context,
@@ -67,21 +79,28 @@ class _VehicleScreenState extends State<VehicleScreen> {
         return AlertDialog(
           title: Text(isEditing ? 'Sửa thông tin xe' : 'Thêm xe mới'),
           content: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8, // Giới hạn chiều rộng
+            width:
+                MediaQuery.of(context).size.width * 0.8, // Giới hạn chiều rộng
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Loại xe', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Loại xe',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   DropdownButton<String>(
                     value: selectedVehicleType,
                     isExpanded: true,
-                    items: ['Xe bán tải', 'Xe máy', 'Xe tải']
-                        .map((type) => DropdownMenuItem(
-                              value: type,
-                              child: Text(type),
-                            ))
-                        .toList(),
+                    items:
+                        ['Xe bán tải', 'Xe máy', 'Xe tải']
+                            .map(
+                              (type) => DropdownMenuItem(
+                                value: type,
+                                child: Text(type),
+                              ),
+                            )
+                            .toList(),
                     onChanged: (value) {
                       setState(() {
                         selectedVehicleType = value!;
@@ -124,7 +143,7 @@ class _VehicleScreenState extends State<VehicleScreen> {
                 };
 
                 if (isEditing) {
-                  newVehicle['vehicleId'] = vehicle!['vehicleId'];
+                  newVehicle['vehicleId'] = vehicle['vehicleId'];
                   await _updateVehicle(newVehicle);
                 } else {
                   await _addVehicle(newVehicle);
@@ -161,7 +180,9 @@ class _VehicleScreenState extends State<VehicleScreen> {
   }
 
   Future<void> _updateVehicle(Map<String, dynamic> updatedVehicle) async {
-    final uri = Uri.parse('http://localhost:5141/api/vehicles/${updatedVehicle['vehicleId']}'); // API cập nhật xe
+    final uri = Uri.parse(
+      'http://localhost:5141/api/vehicles/${updatedVehicle['vehicleId']}',
+    ); // API cập nhật xe
     try {
       final response = await http.put(
         uri,
@@ -171,7 +192,9 @@ class _VehicleScreenState extends State<VehicleScreen> {
 
       if (response.statusCode == 204) {
         setState(() {
-          final index = vehicles.indexWhere((v) => v['vehicleId'] == updatedVehicle['vehicleId']);
+          final index = vehicles.indexWhere(
+            (v) => v['vehicleId'] == updatedVehicle['vehicleId'],
+          );
           if (index != -1) {
             vehicles[index] = updatedVehicle;
           }
@@ -186,7 +209,9 @@ class _VehicleScreenState extends State<VehicleScreen> {
   }
 
   void _confirmDelete(String vehicleId) async {
-    final uri = Uri.parse('http://localhost:5141/api/vehicles/$vehicleId'); // API xóa xe
+    final uri = Uri.parse(
+      'http://localhost:5141/api/vehicles/$vehicleId',
+    ); // API xóa xe
     try {
       final response = await http.delete(uri);
       if (response.statusCode == 204) {
@@ -203,17 +228,18 @@ class _VehicleScreenState extends State<VehicleScreen> {
   }
 
   void _showMessage(String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: color),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
   }
 
   @override
   Widget build(BuildContext context) {
-    final filtered = vehicles.where((v) {
-      final name = v['vehicleType']?.toLowerCase() ?? '';
-      return name.contains(searchKeyword.toLowerCase());
-    }).toList();
+    final filtered =
+        vehicles.where((v) {
+          final name = v['vehicleType']?.toLowerCase() ?? '';
+          return name.contains(searchKeyword.toLowerCase());
+        }).toList();
 
     final startIndex = (currentPage - 1) * pageSize;
     final endIndex = startIndex + pageSize;
@@ -251,7 +277,10 @@ class _VehicleScreenState extends State<VehicleScreen> {
               itemBuilder: (context, index) {
                 final v = currentPageData[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   elevation: 2,
                   child: ListTile(
                     title: Text(
@@ -260,7 +289,10 @@ class _VehicleScreenState extends State<VehicleScreen> {
                     ),
                     subtitle: Text('Biển số: ${v['licensePlate']}'),
                     trailing: PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, color: Colors.orange), // Màu cam
+                      icon: const Icon(
+                        Icons.more_vert,
+                        color: Colors.orange,
+                      ), // Màu cam
                       onSelected: (value) {
                         if (value == 'Xem') {
                           _navigateToDetails(v);
@@ -270,11 +302,21 @@ class _VehicleScreenState extends State<VehicleScreen> {
                           _confirmDelete(v['vehicleId']);
                         }
                       },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(value: 'Xem', child: Text('Xem')),
-                        const PopupMenuItem(value: 'Sửa', child: Text('Sửa')),
-                        const PopupMenuItem(value: 'Xóa', child: Text('Xóa')),
-                      ],
+                      itemBuilder:
+                          (context) => [
+                            const PopupMenuItem(
+                              value: 'Xem',
+                              child: Text('Xem'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Sửa',
+                              child: Text('Sửa'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Xóa',
+                              child: Text('Xóa'),
+                            ),
+                          ],
                     ),
                   ),
                 );
@@ -286,16 +328,18 @@ class _VehicleScreenState extends State<VehicleScreen> {
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: currentPage > 1
-                    ? () => setState(() => currentPage--)
-                    : null,
+                onPressed:
+                    currentPage > 1
+                        ? () => setState(() => currentPage--)
+                        : null,
               ),
               Text('Trang $currentPage / $totalPages'),
               IconButton(
                 icon: const Icon(Icons.arrow_forward),
-                onPressed: currentPage < totalPages
-                    ? () => setState(() => currentPage++)
-                    : null,
+                onPressed:
+                    currentPage < totalPages
+                        ? () => setState(() => currentPage++)
+                        : null,
               ),
             ],
           ),
@@ -342,7 +386,10 @@ class VehicleDetailsPage extends StatelessWidget {
               elevation: 2,
               margin: const EdgeInsets.symmetric(vertical: 8),
               child: ListTile(
-                leading: const Icon(Icons.confirmation_number, color: Colors.blue),
+                leading: const Icon(
+                  Icons.confirmation_number,
+                  color: Colors.blue,
+                ),
                 title: const Text('Sức chứa'),
                 subtitle: Text('${vehicle['capacity'] ?? 'Không có'}'),
               ),
